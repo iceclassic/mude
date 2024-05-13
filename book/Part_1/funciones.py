@@ -40,7 +40,7 @@ def explore_contents(Data,colormap='viridis',opt={'info':True,'Time History': Tr
         plt.show()
     if opt['Sparcity']:
         Data.index = Data.index.year
-        plt.figure(figsize=(20, 6))
+        plt.figure(figsize=(20, 10))
         sns.heatmap(Data.T.isnull(), cbar=False, cmap=colormap, yticklabels=Data.columns)
         plt.title('Sparsity of Time-Series')
         plt.show()
@@ -73,7 +73,7 @@ def compare_columns(Data,cols,norm_type='none',correlation=False):
     if correlation:
         # Compute correlation considering data only where both columns have data
         correlation_matrix = Data_selected.dropna().corr()
-        plt.figure(figsize=(10, 5))
+        plt.figure(figsize=(10, 6))
         sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
         plt.title('Correlation Matrix')
         plt.show()  # Because the columns have different sampling frequencies, the correlation computed wrong. Compute the correlation considering data only where both columns have data.
