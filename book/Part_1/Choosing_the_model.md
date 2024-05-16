@@ -1,5 +1,5 @@
 # Choosing the model
 
-    discus model types explained in MUDE slides/book
+    discuss model types explained in MUDE slides/book
 
-    generic intro  for net page where we choose the type of model the data sources and variables
+    generic intro  for the page where we choose the type of model the data sources and variables.
