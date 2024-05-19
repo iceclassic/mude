@@ -1,4 +1,4 @@
-# Choosing the model
+# Choosing a Model and Preprocessing Data  
 
     discuss model types explained in MUDE slides/book
 
