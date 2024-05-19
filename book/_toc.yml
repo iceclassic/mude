@@ -3,8 +3,10 @@ root: intro.md
 
 parts:
   - caption: Contents
-    chapters:
-    - file: Part_1/Data.ipynb
+    chapters: 
+    - file: Part_1/Choosing_the_model.md
+      sections:
+      - file: Part_1/Data.ipynb
 
     - file: Part_2/Part2.md
       sections:
