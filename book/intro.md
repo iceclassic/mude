@@ -3,27 +3,24 @@
 # Welcome to the iceclassic book, a MUDE Sidequest.
 
 ## Nenana Ice Classic
-Describe here basics/history of Nenana Ice Classic. 
+The Nenana Ice Classic is a betting contest that takes place every year. The bet consist in predicting   day and time the river ice in the Tanana River, Alaska will
+break apart along the waterfront of the town Nenana.
+
+The Ice Classic originated in 1906 as a betting pool by six friends, the first winner Oliver Lee,  earn the  equivalent reward of "a couple of rounds at the trading post bar. This year you can buy a ticket for \$3 and the pool had a value of \$210,155.
+
+A tripod is constructed on the ice during the first weekend in March. Break-up time is
+determined as follows: "The Tripod is setup with a unique pulley and clock system that stops
+the clock once the tripod has moved downstream by 100 ft".
+
+You can see this year's break up on the following [link](https://youtu.be/hNCz1C4fkqo?list=PLo0kgRXad08K-7DV00t4WNzKaaHovr2wi&t=208) or visit teh official [webpage](https://www.nenanaakiceclassic.com/).
 
 ##  Motivation
+Throughout the quarter we will make use of the contents of MUDE to create a model that can  predict the break-up or get as close as possible.
 
-- Make plot with guesses from MUDE-groups (also explained what was done in MUDE)
-- [What happened?](https://youtu.be/hNCz1C4fkqo?list=PLo0kgRXad08K-7DV00t4WNzKaaHovr2wi&t=208) 
+ Last year's prediction can be seen in the following figure: 
+ ![](../figures/Part1/2024_guesses_with_breakup.png)
 
-## Historical results
-
-- Plot of this year's break up in relation to the historical trend
-- Compute probability of day and of time 
-  
-
-### 2024 MUDE Guesses
- As we can see from the video, we weren't that off with respect to date, but a lot in time 
-![alt text](../figures/Part1/2024_guesses_with_breakup.png)
-
-> Distinguish between 'expert' guesses (us), vs MUDE student with different color? Statistical population comparison  ( i thinks its the t-test but might be the chi^2 test )
-
-> use the distribution of the guesses to compute the expected return of 'investment' later on
-
+There is a lot of room for improvement.The question is then, what model and what data will we use this year?
 
 ## Scope
 Describe here the scope/objective of the book
