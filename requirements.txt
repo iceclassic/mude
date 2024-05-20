@@ -3,6 +3,7 @@ teachbooks # depends on jupyter-book
 seaborn
 geopandas
 plotly
+ipympl
 
 # numpy
 

@@ -167,7 +167,7 @@ def z_score_normalization(column: pd.Series) -> pd.Series:
 
 def filter_df(df,start_date=None,end_date=None, cols=None, multiyear=None):
     """ 
-    Filter and Numpify DataFrame.
+    Filters dataFrame.
 
     Parameters:
     -----------
@@ -187,11 +187,7 @@ def filter_df(df,start_date=None,end_date=None, cols=None, multiyear=None):
     pandas.DataFrame or numpy.ndarray
         The filtered DataFrame
 
-    Notes:
-    ------
-    - The function filters the DataFrame based on the selected years first.
-    - It then filters the DataFrame within each year by the specified date range `T_0` to `T_f`.
-    """
+ """
     # Ensure multiyear is a list if not provided
     if multiyear is None:
         multiyear = []
@@ -215,3 +211,99 @@ def filter_df(df,start_date=None,end_date=None, cols=None, multiyear=None):
 
     return df
 
+
+def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=None, y_domains=None):
+    """
+    Plot columns of a DataFrame in interactive plots with multiple y-axes using Plotly.
+
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        The input DataFrame.
+    column_groups : dict
+        A dictionary where keys are group names and values are lists of column names to be plotted together.
+    title : str, optional
+        The title of the plot.
+    xlabel : str, optional
+        The label for the x-axis.
+    ylabel : str, optional
+        The label for the y-axis.
+    y_domains : dict, optional
+        A dictionary where keys are integers representing the y-axis index and values are lists of two floats representing the domain of the y-axis.
+        If None, default equidistant domains will be used based on the number of groups.
+    date_focus : str, optional
+        The initial focus point of the date selector buttons. Format: 'YYYY-MM-DD'.
+    """
+    fig = go.Figure()
+
+    # Calculate default equidistant y-axis domains if not provided
+    num_groups = len(column_groups)
+    if y_domains is None:
+        y_domains = {i: [i / num_groups, (i + 1) / num_groups] for i in range(num_groups)}
+    
+    # Add traces for each column group with separate y-axes
+    for i, (group_name, columns) in enumerate(column_groups.items(), start=1):
+        y_axis = f'y{i}'
+        for column in columns:
+            if column in df.columns:
+                fig.add_trace(go.Scatter(x=df.index, y=df[column], mode='lines', name=f"{group_name}: {column}", yaxis=y_axis))
+            else:
+                print(f"Warning: Column '{column}' not found in DataFrame")
+        
+        # Update layout to add a new y-axis
+        fig.update_layout(
+            **{f'yaxis{i}': dict(
+                title=f"{group_name} [{ylabel}]", 
+                anchor='x', 
+                overlaying='y', 
+                side='left', 
+                domain=y_domains.get(i-1, [0, 1]), 
+                showline=True,
+                linecolor="black",
+                mirror=True,
+                tickmode="auto",
+                ticks="",
+                titlefont={"color": "black"},
+                type="linear",
+                zeroline=False
+            )}
+        )
+    
+    # General layout updates
+    fig.update_layout(
+        title=title,
+        xaxis=dict(
+            title=xlabel, 
+            rangeslider=dict(visible=True), 
+            type="date",
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1m", step="month", stepmode="backward"),
+                    dict(count=6, label="6m", step="month", stepmode="backward"),
+                    dict(count=1, label="YTD", step="year", stepmode="todate"),
+                    dict(count=1, label="1y", step="year", stepmode="backward"),
+                    dict(step="all")
+                ])
+            )
+        ),
+        dragmode="zoom",
+        hovermode="x",
+        legend=dict(traceorder="reversed"),
+        height=800,
+        template="plotly",
+        margin=dict(t=90, b=150)
+    )
+
+    # Add break up times shapes if necessary
+    break_up_times = pd.read_csv('https://raw.githubusercontent.com/iceclassic/sandbox/main/Data/BreakUpTimes.csv')
+    break_up_times['timestamp'] = pd.to_datetime(break_up_times[['Year', 'Month', 'Day']])
+    break_up_times.set_index('timestamp', inplace=True)
+    shapes = []
+    for date in break_up_times.index:
+        shape = {"type": "line", "xref": "x", "yref": "paper", "x0": date, "y0": 0, "x1": date, "y1": 1,
+                 "line": {"color": 'red', "width": 0.6, "dash": 'dot'}, 'name': 'break up time'}
+        shapes.append(shape)
+
+    fig.update_layout(shapes=shapes)
+
+    fig.show()
