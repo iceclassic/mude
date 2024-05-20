@@ -10,7 +10,7 @@ parts:
       - file: Part_1/Resample_interp.ipynb    
       - file: Part_1/Regression.ipynb
       - file: Part_1/numerical_model.ipynb
-      - file: Part_1/distribution.ipynb
+      - file: Part_1/distribution_fitting.ipynb
     - file: Part_2/Part2.md
       sections:
       - file: Part_2/Thermal_Mechanical_years.ipynb
