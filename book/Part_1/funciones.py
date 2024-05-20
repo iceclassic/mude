@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
+import seaborn as sns
 
 
 def explore_contents(data: pd.DataFrame,
@@ -58,6 +58,7 @@ def explore_contents(data: pd.DataFrame,
 
 def compare_columns(data: pd.DataFrame,
                     cols: list,
+                    colormap: str = 'magma',
                     norm_type: str | None = None,
                     correlation: bool = False
                     ) -> None:
@@ -65,6 +66,7 @@ def compare_columns(data: pd.DataFrame,
     Function that print the contents fo the dataframe a plot the content/distribution of each column
     :param data: Pandas dataframe object, where the index is a datetime object
     :param cols: list of column names as strings to compare
+    :param colormap: Name of the matplotlib cmap to use
     :param norm_type:
     :param correlation:
     :return:
@@ -100,7 +102,7 @@ def compare_columns(data: pd.DataFrame,
         # Compute the correlation considering data only where both columns have data.!!
         correlation_matrix = data_selected.dropna().corr()
         plt.figure(figsize=(10, 6))
-        sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
+        sns.heatmap(correlation_matrix, annot=True, cmap=colormap, fmt=".2f", linewidths=0.5)
         plt.title('Correlation Matrix')
         plt.show()
 
@@ -161,3 +163,55 @@ def z_score_normalization(column: pd.Series) -> pd.Series:
     normalized_column = (column - mean) / std_dev
 
     return normalized_column
+
+
+def filter_df(df,start_date=None,end_date=None, cols=None, multiyear=None):
+    """ 
+    Filter and Numpify DataFrame.
+
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        The input DataFrame to be filtered and converted to numpy.
+    start_date : str
+        The initial date for filtering the DataFrame. Format: 'MM/DD'.
+   end_date : str
+        The final date for filtering the DataFrame. Format: 'MM/DD'.
+    multiyear : list, optional
+        List of years to filter the DataFrame.
+    cols : list, optional
+        List of column names to filter the DataFrame. Default is None.
+
+    Returns:
+    --------
+    pandas.DataFrame or numpy.ndarray
+        The filtered DataFrame
+
+    Notes:
+    ------
+    - The function filters the DataFrame based on the selected years first.
+    - It then filters the DataFrame within each year by the specified date range `T_0` to `T_f`.
+    """
+    # Ensure multiyear is a list if not provided
+    if multiyear is None:
+        multiyear = []
+
+    if multiyear:
+        df = df[df.index.year.isin(multiyear)]
+
+    # Filter by month/day range if both start_date and end_date are provided
+    if (start_date is not None) and (end_date is not None):
+        start_date = pd.to_datetime(start_date, format='%m/%d')
+        end_date = pd.to_datetime(end_date, format='%m/%d')
+        mask = (df.index.month == start_date.month) & (df.index.day >= start_date.day) \
+| (df.index.month == end_date.month) & (df.index.day <= end_date.day)
+        
+
+        df = df[mask]
+
+    # Select specific columns if provided
+    if cols is not None:
+        df = df[cols]
+
+    return df
+
