@@ -24,6 +24,9 @@ There is a lot of room for improvement.The question is then, what model and what
 
 ## Scope
 Describe here the scope/objective of the book
+
+- Part 1 Introducing MUDE concepts from another perspective
+- Part 2 Modelling/ Predicting
 ## Authors
 Gabriel Follet
 
