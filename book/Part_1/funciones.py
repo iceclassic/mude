@@ -307,3 +307,67 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
     fig.update_layout(shapes=shapes)
 
     fig.show()
+
+
+def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None,Compare_years_to_baseline=False):
+    """
+    Plot the yearly distribution of temperature data for specified columns.
+
+    Parameters:
+    df (DataFrame): The input DataFrame containing temperature data with a datetime index.
+    columns_to_plot (list, optional): List of column names to plot. 
+                                      If None, plot all columns except "Days since start of year".
+    k (int, optional): Number of standard deviations to plot around the average.
+    plot_mean_std (bool, optional): Whether to plot the mean and standard deviation. Default is True.
+    historicalVariation (bool, optional): Whether to use different colors for each year's data. Default is False.
+    multiyear (int or None, optional): The number of years to consider for filtering the data. 
+                                       If None, all years are considered. Default is None.
+   
+    Returns:
+    None
+    """
+    df_filtered = filter_df(df, multiyear=multiyear)
+
+    if columns_to_plot is None:
+        columns_to_plot = [col for col in df.columns if col != "Days since start of year"]
+
+    fig, ax = plt.subplots(len(columns_to_plot), 1, figsize=(15, 5 * len(columns_to_plot)))
+
+    if historicalVariation:
+        years = df.index.year.unique()
+        cmap = plt.get_cmap('viridis', len(years))
+        norm = plt.Normalize(min(years), max(years))
+
+    for i, col in enumerate(columns_to_plot):
+        df_nonan = df[[col]].dropna()
+        df_nonan['Days since start of year'] = df_nonan.index.dayofyear
+        df_nonan['Year'] = df_nonan.index.year
+        
+        average = df_nonan.groupby('Days since start of year')[col].mean()
+        std = df_nonan.groupby('Days since start of year')[col].std()
+
+        if historicalVariation:
+            for year in years:
+                year_data = df_nonan[df_nonan['Year'] == year]
+                ax[i].scatter(year_data['Days since start of year'], year_data[col], marker='.', color=cmap(norm(year)))
+        else:
+            ax[i].scatter(df_nonan['Days since start of year'], df_nonan[col], marker='.', label=col, color='orangered')
+
+        if plot_mean_std:
+            ax[i].plot(average.index, average, color='b', label='Average')
+            ax[i].fill_between(average.index, average + k * std, average - k * std, color='b', alpha=0.2, label=f'±{k} std')
+
+        ax[i].set_ylabel(f'{col}')
+        ax[i].set_title(f'{col}')
+        ax[i].legend()
+        ax[i].set_xlabel('Days since start of year')
+
+        if historicalVariation:
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+            cbar = fig.colorbar(sm, ax=ax[i])
+            cbar.set_label('Year')
+
+    plt.tight_layout()
+    plt.show()
+
