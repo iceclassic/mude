@@ -2,6 +2,10 @@
 
 # Welcome to the iceclassic book, a MUDE Sidequest.
 
+:::{card} warning
+The data files used in the following notebooks are not in the repo, and therefore the notebook fill fail to import them and run as it not good practice to upload multiple data-files to github. These files will be uploaded to the appropriate server/page before the final deploy.
+:::
+
 ## Nenana Ice Classic
 The Nenana Ice Classic is a betting contest that takes place every year. The bet consist in predicting   day and time the river ice in the Tanana River, Alaska will
 break apart along the waterfront of the town Nenana.
