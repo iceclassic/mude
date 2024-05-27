@@ -2,8 +2,9 @@
 
 # Welcome to the iceclassic book, a MUDE Sidequest.
 
-:::{card} warning
-The data files used in the following notebooks are not in the repo, and therefore the notebook fill fail to import them and run as it not good practice to upload multiple data-files to github. These files will be uploaded to the appropriate server/page before the final deploy.
+:::{warning} Up-to-date version
+See page created from the `develop_1`for latest changes
+
 :::
 
 ## Nenana Ice Classic
