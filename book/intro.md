@@ -1,9 +1,7 @@
 (intro)=
 
 # Welcome to the iceclassic book, a MUDE Sidequest.
-:::{card} warning
-The data files used in the following notebooks are not in the repo, and therefore the notebook will fail to import and run them, as it not good practice to upload multiple data-files to github. These files will be uploaded to the appropriate server/page before the final deploy.
-:::
+
 ## Nenana Ice Classic
 The Nenana Ice Classic is a betting contest that takes place every year. The bet consist in predicting  the day and time of ice break in the Tanana River, Alaska.
 
@@ -24,7 +22,7 @@ Throughout the quarter we will use what we are (an will) learn in  MUDE to creat
 
 > it is not shown in the plot, but this guesses are from two groups, MUDE Students, and people in  'MUDE lunch meetings'.
 > As we have two populations we can use statistical test to determine
-> :          Are the two population samples different ( compare mean, stv of residuals). Same population? one better than other?
+> :          Are the two populations different ( compare mean, stv of residuals). Same population? one better than other?
 
 There is a lot of room for improvement!!! 
 ## Scope
