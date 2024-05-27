@@ -1,5 +1,5 @@
 ## datfiles
-data/raw_files
+data/
 jupyterbook_patches/
 ## Byte-compiled / optimized / DLL files
 __pycache__/

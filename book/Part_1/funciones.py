@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+from scipy.signal import welch
 import seaborn as sns
 import plotly.graph_objects as go
 
@@ -309,7 +311,7 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
     fig.show()
 
 
-def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False):
+def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
@@ -323,9 +325,10 @@ def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, histo
     multiyear (list or None, optional): The list of years to consider for filtering the data. 
                                         If None, all years are considered. Default is None.
     Compare_years_to_baseline (bool, optional): Compare years to a baseline year. Default is False.
+    holdPlot (bool, optional): Whether to hold the plot and not display it. Default is False.
    
     Returns:
-    None
+    
     """
     df_filtered = filter_df(df, multiyear=multiyear)
 
@@ -380,5 +383,74 @@ def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, histo
             cbar.set_label('Year')
 
     plt.tight_layout()
+    if not holdPlot:
+        plt.show()
+
+
+def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False):
+    """
+    Compute and plot the Power Spectral Density (PSD) for the specified columns in the DataFrame.
+    If no columns are specified, compute and plot the PSD for all columns.
+
+    Parameters:
+    df (pd.DataFrame): DataFrame containing the data.
+    cols (list or None): List of column names to compute the PSD for. If None, all columns are used.
+    nperseg (int or None): Length of each segment for Welch's method. Default is None, which uses the default of `scipy.signal.welch`.
+    plot_period (bool): Whether to plot the period (True) or frequency (False) on the x-axis.
+
+    Returns:
+    None
+    """
+    if cols is None:
+        cols = df.columns
+
+    nyquist_freq = 0.5  # Nyquist frequency for a sampling rate of 1 day
+    plt.figure(figsize=(20, 10))
+
+    for col in cols:
+        if col in df.columns:
+            # Drop NaN values to handle different ranges of data
+            valid_data = df[col].dropna()
+            
+            if len(valid_data) == 0:
+                print(f"No valid data for column '{col}'. Skipping.")
+                continue
+
+            # Compute the PSD using a sampling frequency of 1 day (fs = 1)
+            f, Pxx = welch(valid_data, fs=1.0, nperseg=nperseg if nperseg else len(valid_data)//2)
+            
+            # Filter out frequencies higher than the Nyquist frequency
+            valid_indices = f <= nyquist_freq
+            f = f[valid_indices]
+            Pxx = Pxx[valid_indices]
+            
+            if plot_period:
+                # Convert frequency to period
+                with np.errstate(divide='ignore'):
+                    x_values = np.where(f == 0, np.inf, 1 / f)  # Convert frequencies to periods, avoiding division by zero
+                
+                # Filter out infinite and NaN periods
+                valid = np.isfinite(x_values) & ~np.isnan(Pxx)
+                x_values = x_values[valid]
+                Pxx = Pxx[valid]
+                x_label = 'Period [days]'
+            else:
+                x_values = f
+                x_label = 'Frequency [cycles/day]'
+            
+            # Plotting
+            plt.plot(x_values, Pxx, label=col)
+    
+    plt.yscale('log')
+    plt.xlabel(x_label)
+    plt.ylabel('PSD [unit^2/day]')
+    plt.title('PSD of Selected Columns')
+    plt.legend()
+    plt.grid(True, which="both", ls="--")
+    if plot_period:
+        plt.xlim(1, 400) 
+        plt.legend(loc='upper left')
+    plt.minorticks_on()
     plt.show()
+
 
