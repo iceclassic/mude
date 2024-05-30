@@ -514,20 +514,29 @@ def days_since_last_date(df, month_day,name=None):
     
     # Function to calculate days since last occurrence of given month and day
     def days_since(date):
+        """
+        Calculate the number of days since a given date.
+
+        Parameters:
+        date (datetime): The date to calculate the number of days since.
+
+        Returns:
+        int: The number of days since the given date.
+        """
         this_year = date.year
         target_date_this_year = datetime(this_year, month, day)
         target_date_last_year = datetime(this_year - 1, month, day)
-        
+
         # Calculate difference
         if date >= target_date_this_year:
             days_diff = (date - target_date_this_year).days
         else:
             days_diff = (date - target_date_last_year).days
-        
+
         # If days_diff is negative, it means the target date has not occurred this year yet, so we use the previous year's target date
         if days_diff < 0:
             days_diff += 365
-        
+
         return days_diff
     
     df[name] = df.index.map(days_since)
