@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.signal import welch
-import seaborn as sns
 import plotly.graph_objects as go
 import requests
 from io import StringIO
