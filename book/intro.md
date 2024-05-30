@@ -2,7 +2,7 @@
 
 # Welcome to the iceclassic book, a MUDE Sidequest.
 
-:::{warning} Up-to-date version
+:::{warning} 
 See  `develop_1`for latest changes
 
 :::
