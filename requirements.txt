@@ -5,8 +5,8 @@ geopandas
 plotly
 ipympl
 requests
-io
-# numpy
+#io
+numpy
 
 # docutils version for reference page formatting
 docutils==0.17.1
