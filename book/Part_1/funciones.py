@@ -4,6 +4,7 @@ import pandas as pd
 from scipy.signal import welch
 import plotly.graph_objects as go
 import requests
+import seaborn as sns
 from io import StringIO
 from datetime import datetime
 
@@ -313,14 +314,14 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
     fig.show()
 
 
-def yearly_distribution(df,xaxis='Days since start of year', columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False):
+def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year',color='orangered'):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
     Parameters:
     df (DataFrame): The input DataFrame containing temperature data with a datetime index.
     columns_to_plot (list, optional): List of column names to plot. 
-                                      If None, plot all columns except "Days since start of year".
+                                      If None, plot all columns except xaxis column.
     k (int, optional): Number of standard deviations to plot around the average.
     plot_mean_std (bool, optional): Whether to plot the mean and standard deviation. Default is True.
     historicalVariation (bool, optional): Whether to use different colors for each year's data. Default is False.
@@ -328,14 +329,13 @@ def yearly_distribution(df,xaxis='Days since start of year', columns_to_plot=Non
                                         If None, all years are considered. Default is None.
     Compare_years_to_baseline (bool, optional): Compare years to a baseline year. Default is False.
     holdPlot (bool, optional): Whether to hold the plot and not display it. Default is False.
+    xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".
    
     Returns:
-    
+    None
     """
-    df_filtered = filter_df(df, multiyear=multiyear)
-
     if columns_to_plot is None:
-        columns_to_plot = [col for col in df.columns if col != "Days since start of year"]
+        columns_to_plot = [col for col in df.columns if col != xaxis]
 
     fig, ax = plt.subplots(len(columns_to_plot), 1, figsize=(15, 5 * len(columns_to_plot)))
 
@@ -348,26 +348,25 @@ def yearly_distribution(df,xaxis='Days since start of year', columns_to_plot=Non
         norm = plt.Normalize(min(years), max(years))
 
     for i, col in enumerate(columns_to_plot):
-        df_nonan = df[[col]].dropna()
-        df_nonan['Days since start of year'] = df_nonan.index.dayofyear
+        df_nonan = df[[col, xaxis]].dropna()
         df_nonan['Year'] = df_nonan.index.year
         
-        average = df_nonan.groupby('Days since start of year')[col].mean()
-        std = df_nonan.groupby('Days since start of year')[col].std()
+        average = df_nonan.groupby(xaxis)[col].mean()
+        std = df_nonan.groupby(xaxis)[col].std()
 
         if Compare_years_to_baseline:
             for year in multiyear:
                 if year in df_nonan['Year'].unique():
                     year_data = df_nonan[df_nonan['Year'] == year]
-                    ax[i].plot(year_data['Days since start of year'], year_data[col], color=cmap(norm(year)))
+                    ax[i].plot(year_data[xaxis], year_data[col], color=cmap(norm(year)))
                 else:
                     print(f"No {col} data available for year {year}")
         elif historicalVariation:
             for year in years:
                 year_data = df_nonan[df_nonan['Year'] == year]
-                ax[i].scatter(year_data['Days since start of year'], year_data[col], marker='.', color=cmap(norm(year)))
-        else:
-            ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color='orangered')
+                ax[i].scatter(year_data[xaxis], year_data[col], marker='.', color=cmap(norm(year)))
+
+        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color)
 
         if plot_mean_std:
             ax[i].plot(average.index, average, color='b', label=f'Average ±{k} std')
@@ -376,7 +375,7 @@ def yearly_distribution(df,xaxis='Days since start of year', columns_to_plot=Non
         ax[i].set_ylabel(f'{col}')
         ax[i].set_title(f'{col}')
         ax[i].legend()
-        ax[i].set_xlabel(xaxis)
+        ax[i].set_xlabel(f'Days since {xaxis}' )
 
         if Compare_years_to_baseline or historicalVariation:
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -386,6 +385,8 @@ def yearly_distribution(df,xaxis='Days since start of year', columns_to_plot=Non
 
     plt.tight_layout()
     if not holdPlot:
+        plt.show()
+
         plt.show()
 
 
@@ -476,56 +477,39 @@ def import_data_browser(url):
     return csv_data
 
 
-def days_since_last_date(df, month_day,name=None):
+def days_since_last_date(df, date_or_dates, name=None):
     """
-    Calculate the number of days since the last occurrence of a given month and day.
+    Calculate the number of days since the last occurrence of a given month and day or a list of dates.
 
     Parameters:
     - df: DataFrame
         The DataFrame containing the dates.
-    - month_day: str
-        The month and day in the format 'MM/DD' or one of the following special dates:
-        - 'Summer Solstice': June 21st
-        - 'Winter Solstice': December 21st
-        - 'Spring Equinox': March 21st
-        - 'Fall Equinox': September 21st
+    - date_or_dates: str or list of str
+        A single date in the format 'MM/DD' or a special date keyword, or a list of dates in the format 'YYYY/MM/DD'.
+    - name: str, optional
+        The name of the column to add when using a single date. If None, defaults to the month_day or special date keyword.
 
     Returns:
     - df: DataFrame
-        The DataFrame with an additional column 'days_since_last_date' containing the number of days since the last occurrence of the given month and day.
+        The DataFrame with additional columns containing the number of days since the last occurrence of the given date(s).
     """
-    if name is None:
-        name=month_day
     df = df.copy()
-    if month_day=='Summer Solstice':
-        month=6
-        day=21
-    elif month_day=='Winter Solstice':
-        month=12
-        day=21
-    elif month_day=='Spring Equinox':
-         month=3   
-         day=21    
-    elif month_day=='Fall Equinox':
-        month=9   
-        day=21
-    else:
-        month, day = map(int, month_day.split('/'))
-    
+
     # Function to calculate days since last occurrence of given month and day
-    def days_since(date):
+    def days_since(date, target_date):
         """
         Calculate the number of days since a given date.
 
         Parameters:
         date (datetime): The date to calculate the number of days since.
+        target_date (datetime): The target date to calculate the number of days since.
 
         Returns:
         int: The number of days since the given date.
         """
         this_year = date.year
-        target_date_this_year = datetime(this_year, month, day)
-        target_date_last_year = datetime(this_year - 1, month, day)
+        target_date_this_year = datetime(this_year, target_date.month, target_date.day)
+        target_date_last_year = datetime(this_year - 1, target_date.month, target_date.day)
 
         # Calculate difference
         if date >= target_date_this_year:
@@ -538,7 +522,29 @@ def days_since_last_date(df, month_day,name=None):
             days_diff += 365
 
         return days_diff
-    
-    df[name] = df.index.map(days_since)
-    
+
+    # Handle a single date or a special date keyword
+    if isinstance(date_or_dates, str):
+        if date_or_dates == 'Summer Solstice':
+            month, day = 6, 21
+        elif date_or_dates == 'Winter Solstice':
+            month, day = 12, 21
+        elif date_or_dates == 'Spring Equinox':
+            month, day = 3, 21
+        elif date_or_dates == 'Fall Equinox':
+            month, day = 9, 21
+        else:
+            month, day = map(int, date_or_dates.split('/'))
+        
+        target_date = datetime(df.index[0].year, month, day)
+        column_name = name if name else date_or_dates
+        df[column_name] = df.index.map(lambda x: days_since(x, target_date))
+
+    # Handle a list of dates
+    elif isinstance(date_or_dates, list):
+        for date_str in date_or_dates:
+            target_date = datetime.strptime(date_str, '%Y/%m/%d')
+            column_name = f'days_since_{date_str}'
+            df[column_name] = df.index.map(lambda x: days_since(x, target_date))
+
     return df
