@@ -17,13 +17,14 @@ You can see this year's break up on the following [link](https://youtu.be/hNCz1C
 ##  Motivation
 Throughout the quarter we will use what we are (an will) learn in  MUDE to create a model that can predict the break-up or get as close as possible.
 
+> add plot of past break-up dates
+
  Last year's prediction can be seen in the following figure: 
  ![](../figures/Part1/2024_guesses_with_breakup.png)
 
 > it is not shown in the plot, but this guesses are from two groups, MUDE Students, and people in  'MUDE lunch meetings'.
 > As we have two populations we can use statistical test to determine
 > :          Are the two populations different ( compare mean, stv of residuals). Same population? one better than other?
-
 There is a lot of room for improvement!!! 
 ## Scope
 Describe here the scope/objective of the book

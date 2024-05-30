@@ -4,6 +4,9 @@ import pandas as pd
 from scipy.signal import welch
 import seaborn as sns
 import plotly.graph_objects as go
+import requests
+from io import StringIO
+from datetime import datetime
 
 def explore_contents(data: pd.DataFrame,
                      colormap: str = 'viridis',
@@ -311,7 +314,7 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
     fig.show()
 
 
-def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False):
+def yearly_distribution(df,xaxis='Days since start of year', columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
@@ -365,7 +368,7 @@ def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, histo
                 year_data = df_nonan[df_nonan['Year'] == year]
                 ax[i].scatter(year_data['Days since start of year'], year_data[col], marker='.', color=cmap(norm(year)))
         else:
-            ax[i].scatter(df_nonan['Days since start of year'], df_nonan[col], marker='.', label=col, color='orangered')
+            ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color='orangered')
 
         if plot_mean_std:
             ax[i].plot(average.index, average, color='b', label=f'Average ±{k} std')
@@ -374,7 +377,7 @@ def yearly_distribution(df, columns_to_plot=None, k=1, plot_mean_std=True, histo
         ax[i].set_ylabel(f'{col}')
         ax[i].set_title(f'{col}')
         ax[i].legend()
-        ax[i].set_xlabel('Days since start of year')
+        ax[i].set_xlabel(xaxis)
 
         if Compare_years_to_baseline or historicalVariation:
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -454,3 +457,80 @@ def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False):
     plt.show()
 
 
+def import_data_browser(url):
+    """
+    This function imports data from a specified URL.
+
+    Parameters:
+    url (str): The URL from which to import the data.
+
+    Returns:
+    None
+
+    Comments:
+    This function is needed to load data in a browser, as the environment used does not support absolute/relative path imports 
+    """
+   
+    response = requests.get(url)
+    csv_data = StringIO(response.text)
+
+    return csv_data
+
+
+def days_since_last_date(df, month_day,name=None):
+    """
+    Calculate the number of days since the last occurrence of a given month and day.
+
+    Parameters:
+    - df: DataFrame
+        The DataFrame containing the dates.
+    - month_day: str
+        The month and day in the format 'MM/DD' or one of the following special dates:
+        - 'Summer Solstice': June 21st
+        - 'Winter Solstice': December 21st
+        - 'Spring Equinox': March 21st
+        - 'Fall Equinox': September 21st
+
+    Returns:
+    - df: DataFrame
+        The DataFrame with an additional column 'days_since_last_date' containing the number of days since the last occurrence of the given month and day.
+    """
+    if name is None:
+        name=month_day
+    df = df.copy()
+    if month_day=='Summer Solstice':
+        month=6
+        day=21
+    elif month_day=='Winter Solstice':
+        month=12
+        day=21
+    elif month_day=='Spring Equinox':
+         month=3   
+         day=21    
+    elif month_day=='Fall Equinox':
+        month=9   
+        day=21
+    else:
+        month, day = map(int, month_day.split('/'))
+    
+    # Function to calculate days since last occurrence of given month and day
+    def days_since(date):
+        this_year = date.year
+        target_date_this_year = datetime(this_year, month, day)
+        target_date_last_year = datetime(this_year - 1, month, day)
+        
+        # Calculate difference
+        if date >= target_date_this_year:
+            days_diff = (date - target_date_this_year).days
+        else:
+            days_diff = (date - target_date_last_year).days
+        
+        # If days_diff is negative, it means the target date has not occurred this year yet, so we use the previous year's target date
+        if days_diff < 0:
+            days_diff += 365
+        
+        return days_diff
+    
+    df[name] = df.index.map(days_since)
+    
+    return df
