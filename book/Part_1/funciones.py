@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.signal import welch,find_peaks, butter, lfilter, filtfilt
+from scipy.fft import fft, fftfreq
 import plotly.graph_objects as go
 import requests
 import seaborn as sns
@@ -494,13 +495,80 @@ def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_f
     plt.title('PSD of Selected Columns')
     plt.legend()
     plt.grid(True, which="both", ls="--")
+    plt.ylim(10e-10,10e10)
     if plot_period:
         plt.xlim(1, 800)
-        plt.legend(loc='upper left')
+    else:
+        plt.xlim(0, max_allowed_freq)
+    plt.legend(loc='lower right')
     plt.minorticks_on()
     plt.show()
 
     return psd_dict
+
+def compute_and_plot_fourier(df, cols=None, plot_period=False):
+    """
+    Compute and plot the Fourier Transform for the specified columns in the DataFrame.
+    If no columns are specified, compute and plot the Fourier Transform for all columns.
+
+    Parameters:
+    df (pd.DataFrame): DataFrame containing the data.
+    cols (list or None): List of column names to compute the Fourier Transform for. If None, all columns are used.
+    plot_period (bool): Whether to plot the period (True) or frequency (False) on the x-axis.
+
+    Returns:
+    dict: Dictionary containing the Fourier Transform values and frequencies for each column.
+    """
+    if cols is None:
+        cols = df.columns
+
+    plt.figure(figsize=(20, 10))
+    fft_dict = {}
+
+    for col in cols:
+        if col in df.columns:
+            # Drop NaN values to handle different ranges of data
+            valid_data = df[col].dropna()
+
+            if len(valid_data) == 0:
+                print(f"No valid data for column '{col}'. Skipping.")
+                continue
+
+            # Compute the Fourier Transform
+            ft = fft(valid_data)
+            freq = fftfreq(len(valid_data))
+
+            # Store Fourier Transform values and frequencies in the dictionary
+            fft_dict[col] = {
+                'values': ft,
+                'frequencies': freq
+            }
+
+            # Plotting
+            if plot_period:
+                # Convert frequency to period
+                with np.errstate(divide='ignore'):
+                    x_values = np.where(freq == 0, np.inf, 1 / freq)  # Convert frequencies to periods, avoiding division by zero
+                x_label = 'Period [days]'
+            else:
+                x_values = freq
+                x_label = 'Frequency [cycles/day]'
+
+            plt.plot(x_values, np.abs(ft), label=col)
+
+    plt.yscale('log')
+    plt.xlabel(x_label)
+    plt.ylabel('Fourier Transform')
+    plt.title('Fourier Transform of Selected Columns')
+    plt.legend()
+    plt.grid(True, which="both", ls="--")
+    if plot_period:
+        plt.xlim(1, 400)
+        plt.legend(loc='upper left')
+    plt.minorticks_on()
+    plt.show()
+
+    return fft_dict
 
 def import_data_browser(url):
     """
