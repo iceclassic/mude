@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.signal import welch
+from scipy.signal import welch,find_peaks, butter, lfilter, filtfilt
 import plotly.graph_objects as go
 import requests
 import seaborn as sns
@@ -396,25 +396,37 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
         plt.show()
 
 
-def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False):
+
+def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_filter=False, max_allowed_freq=None,
+                         filter_order=4, find_peaks_kwargs=None):
     """
     Compute and plot the Power Spectral Density (PSD) for the specified columns in the DataFrame.
     If no columns are specified, compute and plot the PSD for all columns.
+    Optionally apply a low-pass filter to the data before computing the PSD.
 
     Parameters:
     df (pd.DataFrame): DataFrame containing the data.
     cols (list or None): List of column names to compute the PSD for. If None, all columns are used.
     nperseg (int or None): Length of each segment for Welch's method. Default is None, which uses the default of `scipy.signal.welch`.
     plot_period (bool): Whether to plot the period (True) or frequency (False) on the x-axis.
+    apply_filter (bool): Whether to apply a low-pass filter to the data. Default is False.
+    max_allowed_freq (float or None): Maximum allowed frequency for the low-pass filter. Required if apply_filter is True.
+    filter_order (int): The order of the Butterworth filter. Default is 4.
+    find_peaks_kwargs (dict or None): Additional keyword arguments to be passed to `find_peaks`.
 
     Returns:
-    None
+    dict: Dictionary containing the PSD values, frequencies, peak information, and period for each column.
     """
+    if find_peaks_kwargs is None:
+        find_peaks_kwargs = {}
+
     if cols is None:
         cols = df.columns
 
     nyquist_freq = 0.5  # Nyquist frequency for a sampling rate of 1 day
     plt.figure(figsize=(20, 10))
+    
+    psd_dict = {}
 
     for col in cols:
         if col in df.columns:
@@ -424,7 +436,18 @@ def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False):
             if len(valid_data) == 0:
                 print(f"No valid data for column '{col}'. Skipping.")
                 continue
-
+            
+            # Apply low-pass filter if requested
+            if apply_filter:
+                if max_allowed_freq is None:
+                    raise ValueError("max_allowed_freq must be specified if apply_filter is True.")
+                if max_allowed_freq > nyquist_freq:
+                    raise ValueError(f"max_allowed_freq must be <= {nyquist_freq}")
+                
+                # Design a Butterworth filter
+                b, a = butter(filter_order, max_allowed_freq, btype='low', analog=False, fs=1.0)
+                valid_data = filtfilt(b, a, valid_data)
+            
             # Compute the PSD using a sampling frequency of 1 day (fs = 1)
             f, Pxx = welch(valid_data, fs=1.0, nperseg=nperseg if nperseg else len(valid_data)//2)
             
@@ -447,6 +470,21 @@ def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False):
                 x_values = f
                 x_label = 'Frequency [cycles/day]'
             
+            # Find peaks in the PSD
+            peaks, _ = find_peaks(Pxx, **find_peaks_kwargs)
+            peak_freqs = f[peaks]
+            peak_psd_values = Pxx[peaks]
+            peak_periods = 1 / peak_freqs  # Calculate periods in days
+            
+            # Store PSD values and peak information in the dictionary
+            psd_dict[col] = {
+                'frequencies': f,
+                'psd_values': Pxx,
+                'peak_frequencies': peak_freqs,
+                'peak_psd_values': peak_psd_values,
+                'peak_periods': peak_periods
+            }
+            
             # Plotting
             plt.plot(x_values, Pxx, label=col)
     
@@ -457,11 +495,12 @@ def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False):
     plt.legend()
     plt.grid(True, which="both", ls="--")
     if plot_period:
-        plt.xlim(1, 400) 
+        plt.xlim(1, 800)
         plt.legend(loc='upper left')
     plt.minorticks_on()
     plt.show()
 
+    return psd_dict
 
 def import_data_browser(url):
     """
