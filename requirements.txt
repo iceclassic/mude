@@ -2,6 +2,7 @@
 teachbooks # depends on jupyter-book
 jupyter-book
 seaborn
+sympy
 scipy
 geopandas
 plotly
