@@ -293,7 +293,13 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
         ),
         dragmode="zoom",
         hovermode="x",
-        legend=dict(traceorder="reversed"),
+        legend=dict(traceorder="reversed",
+        x=0,
+        y=1,
+        xanchor='left',
+        yanchor='top',
+        orientation='v'
+    ),
         height=800,
         template="plotly",
         margin=dict(t=90, b=150)
