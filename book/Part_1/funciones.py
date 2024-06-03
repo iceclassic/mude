@@ -320,7 +320,7 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
     fig.show()
 
 
-def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year',color='orangered'):
+def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year',color='orangered',alpha=1):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
@@ -372,7 +372,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
                 year_data = df_nonan[df_nonan['Year'] == year]
                 ax[i].scatter(year_data[xaxis], year_data[col], marker='.', color=cmap(norm(year)))
 
-        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color)
+        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color,alpha=alpha)
 
         if plot_mean_std:
             ax[i].plot(average.index, average, color='b', label=f'Average ±{k} std')
