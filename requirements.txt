@@ -1,13 +1,18 @@
 # first list the packages you wish to download from PyPI
 teachbooks # depends on jupyter-book
+jupyter-book
 seaborn
 scipy
 geopandas
 plotly
 ipympl
 requests
-#io
 numpy
+scipy
+matplotlib
+pandas
+pylance
+ipympl
 
 # docutils version for reference page formatting
 docutils==0.17.1
