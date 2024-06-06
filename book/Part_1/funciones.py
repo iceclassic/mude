@@ -321,7 +321,7 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
     fig.show()
 
 
-def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year',color='orangered',alpha=1):
+def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year', color='orangered', alpha=1):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
@@ -337,14 +337,18 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
     Compare_years_to_baseline (bool, optional): Compare years to a baseline year. Default is False.
     holdPlot (bool, optional): Whether to hold the plot and not display it. Default is False.
     xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".
-   
+
     Returns:
     None
     """
     if columns_to_plot is None:
         columns_to_plot = [col for col in df.columns if col != xaxis]
 
-    fig, ax = plt.subplots(len(columns_to_plot), 1, figsize=(15, 5 * len(columns_to_plot)))
+    num_plots = len(columns_to_plot)
+    fig, ax = plt.subplots(num_plots, 1, figsize=(15, 5 * num_plots))
+
+    if num_plots == 1:
+        ax = [ax]  # Make ax iterable
 
     if Compare_years_to_baseline:
         cmap = plt.get_cmap('viridis')
@@ -357,7 +361,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
     for i, col in enumerate(columns_to_plot):
         df_nonan = df[[col, xaxis]].dropna()
         df_nonan['Year'] = df_nonan.index.year
-        
+
         average = df_nonan.groupby(xaxis)[col].mean()
         std = df_nonan.groupby(xaxis)[col].std()
 
@@ -373,7 +377,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
                 year_data = df_nonan[df_nonan['Year'] == year]
                 ax[i].scatter(year_data[xaxis], year_data[col], marker='.', color=cmap(norm(year)))
 
-        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color,alpha=alpha)
+        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color, alpha=alpha)
 
         if plot_mean_std:
             ax[i].plot(average.index, average, color='b', label=f'Average ±{k} std')
@@ -382,7 +386,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
         ax[i].set_ylabel(f'{col}')
         ax[i].set_title(f'{col}')
         ax[i].legend()
-        ax[i].set_xlabel(f'Days since {xaxis}' )
+        ax[i].set_xlabel(f'Days since {xaxis}')
 
         if Compare_years_to_baseline or historicalVariation:
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -392,8 +396,6 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
 
     plt.tight_layout()
     if not holdPlot:
-        plt.show()
-
         plt.show()
 
 
