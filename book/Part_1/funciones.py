@@ -399,7 +399,6 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
         plt.show()
 
 
-
 def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_filter=False, max_allowed_freq=None,
                          filter_order=4, find_peaks_kwargs=None):
     """
@@ -590,7 +589,6 @@ def import_data_browser(url):
     csv_data = StringIO(response.text)
 
     return csv_data
-
 
 def days_since_last_date(df, date_or_dates, name=None):
     """
