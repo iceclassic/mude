@@ -667,7 +667,7 @@ def days_since_last_date(df, date_or_dates, name=None):
     return df
 
 
-def plot_interactiv_map(d):
+def plot_interactiv_map():
     
     plotly.offline.init_notebook_mode()
 
