@@ -8,6 +8,10 @@ import requests
 import seaborn as sns
 from io import StringIO
 from datetime import datetime
+import plotly.graph_objects as go
+#import plotly.graph_objs as go
+import geopandas as gpd
+import plotly
 
 def explore_contents(data: pd.DataFrame,
                      colormap: str = 'viridis',
@@ -661,3 +665,216 @@ def days_since_last_date(df, date_or_dates, name=None):
             df[column_name] = df.index.map(lambda x: days_since(x, target_date))
 
     return df
+
+
+def plot_interactiv_map(d):
+    
+    plotly.offline.init_notebook_mode()
+
+
+
+
+    # Define click event handler
+    def click_callback(trace, points, selector):
+        if points:
+            lat = points.xs[0]
+            lon = points.ys[0]
+            print(f"Latitude: {lat}, Longitude: {lon}")
+
+    # Latitude and longitude coordinates for Nenana, Alaska
+    nenana_lat = 64.56702898502982
+    nenana_lon = -149.0815700675435
+
+    USW00026435_NENANA_LAT=64.54725
+    USW00026435_NENANA_LOG=	-149.08713
+
+    USW00026435_Fairbanks_LAT=64.80309
+    USW00026435_Fairbanks_LOG=	-147.87606
+
+    square_lat = [64, 64, 65, 65,64]  # Latitude of vertices
+    square_lon = [-150, -149, -149, -150,-150]  # Longitude of vertices
+
+    gulkana_lat= 63.2818
+    gulkana_lon=-145.426 
+
+    usgs_tenana_river_lat=64.5649444
+    usgs_tenana_river_lon=-149.094 
+
+    usgs_tenana_fairbanks_lat=64.792344 
+    usgs_tenana_fairbanks_lon=-147.8413097 
+
+    square_lat_w = [64, 64, 66, 66,64]  # Latitude of vertices
+    square_lon_w = [-151, -149, -149, -151,-151]  # Longitude of vertices
+
+    #hydrographic_gdf = gpd.read_file('../../data/shape_files/hybas_na_lev01_v1c.shp')
+
+    # Initialize Plotly figure with initial zoom level and center coordinates
+    fig = go.Figure()
+
+    # Add markers
+    fig.add_trace(go.Scattermapbox(
+        lat=[nenana_lat],
+        lon=[nenana_lon],
+        mode='markers',
+        marker=dict(
+            size=10,
+            color='purple',
+            opacity=0.8  # Increase opacity
+        ),
+        text=["NENANA tripod"],  # Text label for the marker
+        hoverinfo="text" , # Only show text on hover
+        name="Ice classic tripod"
+    ))
+    fig.add_trace(go.Scattermapbox(
+        lat=[USW00026435_NENANA_LAT],
+        lon=[USW00026435_NENANA_LOG],
+        mode='markers',
+        marker=dict(
+            size=10,
+            color='red',
+            opacity=0.8  # Increase opacity
+        ),
+        text=["USGS Weather Station USW00026435"],  # Text label for the marker
+        hoverinfo="text",  # Only show text on hover
+        name="Nenana Weather Station"
+    ))
+    fig.add_trace(go.Scattermapbox(
+        lat=[USW00026435_Fairbanks_LAT],
+        lon=[USW00026435_Fairbanks_LOG],
+        mode='markers',
+        marker=dict(
+            size=10,
+            color='red',
+            opacity=0.8  # Increase opacity
+        ),
+        text=["USGS Weather Station USW00026411"],  # Text label for the marker
+        hoverinfo="text",  # Only show text on hover
+        name="Fairbanks Weather Station"
+    ))
+    fig.add_trace(go.Scattermapbox(
+        lat=square_lat,
+        lon=square_lon,
+        mode='lines',  # Draw lines between vertices
+        line=dict(color='yellow'),  # Color of the lines
+        fill='toself',  # Fill the inside of the polygon
+        fillcolor='rgba(255, 239,0, 0.1)',
+        name='Temperature',
+        text="Berkeley Earth Global",
+        hoverinfo='text'
+    ))
+    fig.add_trace(go.Scattermapbox(
+        lat=[gulkana_lat],
+        lon=[gulkana_lon],
+        mode='markers',  # Draw lines between vertices
+        marker=dict(
+            size=10,
+            color='blue',
+            opacity=0.8  # Increase opacity
+        ),
+        name='Gulkana  Glacier',
+        text="USGS  Weather Station  15485500",
+        hoverinfo='text'
+    ))
+    fig.add_trace(go.Scattermapbox(
+        lat=[usgs_tenana_river_lat],
+        lon=[usgs_tenana_river_lon],
+        mode='markers',  # Draw lines between vertices
+        marker=dict(
+            size=10,
+            color='green',
+            opacity=0.8  # Increase opacity
+        ),
+        name='Tenana R at Nenana',
+        text="USGS  Weather Station 15515500",
+        hoverinfo='text'
+    ))
+    fig.add_trace(go.Scattermapbox(
+        lat=[usgs_tenana_fairbanks_lat],
+        lon=[usgs_tenana_fairbanks_lon],
+        mode='markers',  # Draw lines between vertices
+        marker=dict(
+            size=10,
+            color='green',
+            opacity=0.8  # Increase opacity
+        ),
+        name='Tenana R at Fairbanks',
+        text="USGS  Weather Station 15515500",
+        hoverinfo='text'
+    ))
+    fig.add_trace(go.Scattermapbox(
+        lat=square_lat_w,
+        lon=square_lon_w,
+        mode='lines',  # Draw lines between vertices
+        line=dict(color='pink'),  # Color of the lines
+        fill='toself',  # Fill the inside of the polygon
+        fillcolor='rgba(255, 20,147, 0.01)',
+        name='Solar Radiation and Cloud Coverage',
+        text="TEMIS & NERC-EDS",
+        hoverinfo='text'
+    ))
+    # fig.add_trace(go.Scattermapbox(
+    #     lat=hydrographic_gdf.geometry.y,
+    #     lon=hydrographic_gdf.geometry.x,
+    #     mode='markers',
+    #     marker=dict(
+    #         size=8,
+    #         color='blue',
+    #         opacity=0.6
+    #     ),
+    #     name='Hydrographic Information',
+    #     text=hydrographic_gdf['name'],  # Assuming there's a 'name' column
+    #     hoverinfo='text'
+    # ))
+
+
+
+    fig.update_layout(
+        mapbox_style="open-street-map",
+        mapbox=dict(
+            center=dict(lat=nenana_lat, lon=nenana_lon),
+            zoom=5
+        ),
+        margin=dict(l=0, r=0, t=0, b=0),  # Set margins to zero
+        legend=dict(
+            x=0,
+            y=1,
+            xanchor='left',
+            yanchor='top',
+            orientation='v'
+        ),
+        updatemenus=[  # Add buttons for layer toggling
+            dict(
+                buttons=list([
+                    dict(
+                        args=['visible', [False, False, False, True, True, True, True, True, False, False]],
+                        label='Hide (some) Layers',
+                        method='restyle'
+                    ),
+                    dict(
+                        args=['visible', [True, True, True, True, True, True, True, True, True, True]],
+                        label='Show (all) Layers',
+                        method='restyle'
+                    )
+                ]),
+                direction='left',
+                pad={'r': 10, 't': 10},
+                showactive=True,
+                type='buttons',
+                x=0.1,
+                xanchor='left',
+                y=1.1,
+                yanchor='top'
+            ),
+        ]
+    )
+
+    # Add invisible scatter plot trace to capture click events
+    click_trace = go.Scattermapbox(lat=[], lon=[], mode='markers', marker=dict(opacity=0))
+    fig.add_trace(click_trace)
+
+    # Update click event handler
+    click_trace.on_click(click_callback)
+
+
+    # Show interactive plot
+    fig.show()
