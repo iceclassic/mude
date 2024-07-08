@@ -1,50 +1,51 @@
 (intro)=
 
-# Welcome to the iceclassic book, a MUDE Sidequest.
+# Welcome to the iceclassic book!!. A MUDE Sidequest
+
+The iceclassic book contains additional (and optional) content to the main MUDE book. This interactive books focusses in applying the programming concepts of MUDE to create a simple model.
+
+Unlike the MUDE interactive book, the PAs  or the friday's assignments, we will use apply most of the concept to the same problem, in order to understand how they can complement each other, how they differ, etc.
 
 ## Nenana Ice Classic
-The Nenana Ice Classic is a betting contest that takes place every year. The bet consist in predicting  the day and time of ice break in the Tanana River, Alaska.
 
+The Nenana Ice Classic is an annual betting contest in Alaska where participants predict the exact day and time the ice will break on the Tanana River.
 
-The Ice Classic originated in 1906 as a betting pool by six friends, the first winner Oliver Lee,  earn the  equivalent reward of "a couple of rounds at the trading post bar. This year you can buy a ticket for \$3 and the pool had a value of \$210,155.
+Originating in 1906 as a small betting pool among six friends, the first winner, Oliver Lee, received a reward equivalent to "a couple of rounds at the trading post bar." Over the years, the contest has grown significantly. This year, tickets are available for $3 each, and the total prize pool has reached \$210,155.
 
-A tripod is constructed on the ice during the first weekend in March. Break-up time is
-determined as follows: "The Tripod is setup with a unique pulley and clock system that stops
-the clock once the tripod has moved downstream by 100 ft".
+Each year, a tripod is set up on the ice during the first weekend in March. The break-up time is determined using a unique system where the clock stops once the tripod, connected by a pulley system, has drifted 100 feet downstream.
 
-You can see this year's break up on the following [link](https://youtu.be/hNCz1C4fkqo?list=PLo0kgRXad08K-7DV00t4WNzKaaHovr2wi&t=208) and visit the official [webpage](https://www.nenanaakiceclassic.com/) for more details
+You can see last year's ice break-up [here](https://youtu.be/hNCz1C4fkqo?list=PLo0kgRXad08K-7DV00t4WNzKaaHovr2wi&t=208). For more information, visit the official Nenana Ice Classic [webpage](https://www.nenanaakiceclassic.com/).
 
-##  Motivation
-Throughout the quarter we will use what we are (an will) learn in  MUDE to create a model that can predict the break-up or get as close as possible.
+## Motivation
 
-> add plot of past break-up dates
+Last year, every MUDE group submitted a guess, and on average we were off by almost a week
 
- Last year's prediction can be seen in the following figure: 
- ![](../figures/Part1/2024_guesses_with_breakup.png)
+ ![Fig.1](../figures/Part1/2024_guesses_with_breakup.png)
 
-> it is not shown in the plot, but this guesses are from two groups, MUDE Students, and people in  'MUDE lunch meetings'.
-> As we have two populations we can use statistical test to determine
-> :          Are the two populations different ( compare mean, stv of residuals). Same population? one better than other?
-There is a lot of room for improvement!!! 
+There is a lot of room for improvement!!!
+
 ## Scope
-Describe here the scope/objective of the book
 
-- Part 1 Using MUDE to understand the problem
-- Part 2 Building a model
+The book is divided into two parts.
+
+#### Part 1 - Applying MUDE concepts
+
+In the first part, we will individually apply each MUDE concept to a subset of the main problem.
+We will also focus on programming aspect related to the use of Pandas and other programming aspects that might have been overlooked during MUDE.
+
+#### Part 2 Building a model
+n the second part of the book, we will clearly define the problem at hand. Based on this, we will outline the objectives our model needs to achieve and detail how the model will accomplish these goals.
 
 ## Authors
 
 Gabriel Follet
 
-## Acknowledges
+## Acknowledgments
 
 This book ...
 
 - Special acknowledge to Prof. Robert Lanzafame
 - and everyone else that participated in the 'MUDE Q3' ice classic lunch meetings.
-
-
-
 
 <!-- This book is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 

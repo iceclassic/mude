@@ -667,7 +667,7 @@ def days_since_last_date(df, date_or_dates, name=None):
     return df
 
 
-def plot_interactiv_map():
+def plot_interactive_map():
     
     plotly.offline.init_notebook_mode()
 
@@ -680,6 +680,22 @@ def plot_interactiv_map():
             lat = points.xs[0]
             lon = points.ys[0]
             print(f"Latitude: {lat}, Longitude: {lon}")
+    def extract_line_coords(geometry):
+        if geometry is None:
+            return [], []
+        if isinstance(geometry, LineString):
+            lon, lat = geometry.xy
+            return list(lat), list(lon)
+        elif isinstance(geometry, MultiLineString):
+            lats, lons = [], []
+            for line in geometry:
+                lon, lat = line.xy
+                lats.extend(list(lat))
+                lons.extend(list(lon))
+                lats.append(None)  # None to break the line in the plot
+                lons.append(None)
+            return lats, lons
+        return [], []
 
     # Latitude and longitude coordinates for Nenana, Alaska
     nenana_lat = 64.56702898502982
