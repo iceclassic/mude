@@ -10,6 +10,7 @@ ipympl
 requests
 numpy
 scipy
+scipy.signal
 matplotlib
 pandas
 pylance
