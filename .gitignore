@@ -1,6 +1,7 @@
 ## datfiles
 data/
 jupyterbook_patches/
+.html
 ## Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
