@@ -20,15 +20,17 @@ def explore_contents(data: pd.DataFrame,
                                   'Sparsity':True}
                      ) -> None:
     """
-    Function that print the contents fo the dataframe a plot the content/distribution of each column
+    Function that print a summary of th dataframe and plots the content/distribution of each column
     
-    :param data: Pandas DataFrame object, where the index is a datetime object 
-    :param colormap: Name of the matplotlib cmap to use
-    :param opt: Dictionary with options of different way to explore the contents of the df
+     Parameters
+    ----------
+    data: Pandas DataFrame object, where the index is a datetime object 
+    colormap: Name of the matplotlib cmap to use
+    opt: Dictionary with options of different ways to explore the contents of the df
         Info: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
         Time History: Plots the contents of every column and the distribution of the values on it
-        Sparsity: Heatmap of contents, compares the 'frequency sampling' of each colum  
-    :return: None
+        Sparsity: Heatmap of contents,plots the sparsity of each column in time
+    
     """
 
     # Make a copy of the input data
@@ -68,18 +70,20 @@ def explore_contents(data: pd.DataFrame,
 
 def compare_columns(data: pd.DataFrame,
                     cols: list,
-                    colormap: str = 'magma',
+                    colormap: str = 'RdYlBu',
                     norm_type: str | None = None,
                     correlation: bool = False
                     ) -> None:
     """
-    Function that print the contents fo the dataframe a plot the content/distribution of each column
-    :param data: Pandas dataframe object, where the index is a datetime object
-    :param cols: list of column names as strings to compare
-    :param colormap: Name of the matplotlib cmap to use
-    :param norm_type:
-    :param correlation:
-    :return:
+    Function that plot multiple columns of a DataFrame and their correlation matrix.
+
+     Parameters
+    ----------
+    data: pandas.DataFrame, where the index is a datetime object
+    cols: list of column names as strings to compare
+    colormap: Name of the matplotlib cmap to use
+    norm_type: str indicating the type of normalization, 'min_max' or 'z-norm'
+    correlation: bool indicating if the correlation matrix should be plotted
     """
 
     # Make a copy of the input data
@@ -106,15 +110,14 @@ def compare_columns(data: pd.DataFrame,
     plt.tight_layout()
     plt.show()
 
+
     if correlation:
-        # Compute correlation considering data only where both columns have data
-        # !!Because the columns have different sampling frequencies, the correlation computed wrong.
-        # Compute the correlation considering data only where both columns have data.!!
         correlation_matrix = data_selected.dropna().corr()
         plt.figure(figsize=(10, 6))
-        sns.heatmap(correlation_matrix, annot=True, cmap=colormap, fmt=".2f", linewidths=0.5)
+        sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm_r', fmt=".2f", linewidths=0.5, vmin=0, vmax=1)
         plt.title('Correlation Matrix')
         plt.show()
+
 
 
 def normalize_df(df: pd.DataFrame,
@@ -122,9 +125,14 @@ def normalize_df(df: pd.DataFrame,
                  ) -> pd.DataFrame:
     """
     Normalizes the Pandas DataFrame object.
-    :param df:
-    :param norm_type:
-    :return:
+     
+     Parameters
+    ----------
+    df: DataFrame to normalize
+    norm_type: str with the type of normalization, 'min_max' or 'z-norm'
+    
+    
+    return: Normalized DataFrame
     """
 
     if norm_type is None:
@@ -140,19 +148,21 @@ def normalize_df(df: pd.DataFrame,
         for column in df.columns:
             df_normalized[column] = z_score_normalization(df[column])
     else:
-        raise ValueError(f"Invalid input for norm_type: {norm_type}. Please provide a valid normalization type.")
+        return df
 
     return df_normalized
 
 
 def min_max_normalization(column: pd.Series) -> pd.Series:
     """
-    Normalizes a pandas DataFrame Series using lightweight min-max-normalization
-    :param column: Column to normalize as a pandas.Series
-    :return: The normalized column as a pandas.Series
+    Normalizes a pandas DataFrame Series using  min-max-normalization
+    
+     Parameters
+    ----------
+    column: Column to normalize as a pandas.Series
+    
+    return: The normalized column as a pandas.Series
     """
-
-    column_numeric = pd.to_numeric(column, errors='coerce')
     min_val = column.min()
     max_val = column.max()
     scaled_column = (column - min_val) / (max_val - min_val)
@@ -163,8 +173,12 @@ def min_max_normalization(column: pd.Series) -> pd.Series:
 def z_score_normalization(column: pd.Series) -> pd.Series:
     """
     Normalizes a pandas DataFrame Series using basic z-normalization.
-    :param column: Column to normalize as a pandas.Series
-    :return: The normalized column as a pandas.Series
+
+     Parameters
+    ----------
+    column: Column to normalize as a pandas.Series
+
+    return: The normalized column as a pandas.Series
     """
 
     column = pd.to_numeric(column, errors='coerce')
@@ -680,22 +694,6 @@ def plot_interactive_map():
             lat = points.xs[0]
             lon = points.ys[0]
             print(f"Latitude: {lat}, Longitude: {lon}")
-    def extract_line_coords(geometry):
-        if geometry is None:
-            return [], []
-        if isinstance(geometry, LineString):
-            lon, lat = geometry.xy
-            return list(lat), list(lon)
-        elif isinstance(geometry, MultiLineString):
-            lats, lons = [], []
-            for line in geometry:
-                lon, lat = line.xy
-                lats.extend(list(lat))
-                lons.extend(list(lon))
-                lats.append(None)  # None to break the line in the plot
-                lons.append(None)
-            return lats, lons
-        return [], []
 
     # Latitude and longitude coordinates for Nenana, Alaska
     nenana_lat = 64.56702898502982

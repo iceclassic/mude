@@ -26,15 +26,13 @@ There is a lot of room for improvement!!!
 
 ## Scope
 
-The book is divided into two parts.
-
 #### Part 1 - Applying MUDE concepts
 
 In the first part, we will individually apply each MUDE concept to a subset of the main problem.
 We will also focus on programming aspect related to the use of Pandas and other programming aspects that might have been overlooked during MUDE.
 
-#### Part 2 Building a model
-n the second part of the book, we will clearly define the problem at hand. Based on this, we will outline the objectives our model needs to achieve and detail how the model will accomplish these goals.
+#### Part 2- Building a model
+The second part of the book, we will clearly define the problem at hand. Based on this, we will outline the objectives our model needs to achieve and detail how the model will accomplish these goals.
 
 ## Authors
 
