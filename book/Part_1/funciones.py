@@ -18,7 +18,7 @@ def explore_contents(data: pd.DataFrame,
                      opt: dict = {'Info':True,
                                   'Time History': True,
                                   'Sparsity':True}
-                     ) -> None:
+                     ) -> plt.figure:
     """
     Function that print a summary of th dataframe and plots the content/distribution of each column
     
@@ -27,10 +27,18 @@ def explore_contents(data: pd.DataFrame,
     data: Pandas DataFrame object, where the index is a datetime object 
     colormap: Name of the matplotlib cmap to use
     opt: Dictionary with options of different ways to explore the contents of the df
-        Info: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
-        Time History: Plots the contents of every column and the distribution of the values on it
-        Sparsity: Heatmap of contents,plots the sparsity of each column in time
-    
+        `Info`: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
+        `Time History`: Plots the contents of every column and the distribution of the values on it
+        `Sparsity`: Heatmap of contents, plots the sparsity of each column in time
+
+      Returns:
+    ----------
+    Depending on the options selected in the dictionary , the function will return
+        if `Info`=True -> prints a summary of the dataframe using, using method `.info`
+
+        elif `Time History`=True-> plot with  the content/distribution of each column, 
+
+        elif `Sparsity`=True -> plot with the sparsity of the data in time
     """
 
     # Make a copy of the input data
@@ -73,7 +81,7 @@ def compare_columns(data: pd.DataFrame,
                     colormap: str = 'RdYlBu',
                     norm_type: str | None = None,
                     correlation: bool = False
-                    ) -> None:
+                    ) -> plt.figure:
     """
     Function that plot multiple columns of a DataFrame and their correlation matrix.
 
@@ -189,7 +197,10 @@ def z_score_normalization(column: pd.Series) -> pd.Series:
     return normalized_column
 
 
-def filter_df(df,start_date=None,end_date=None, cols=None, multiyear=None):
+def filter_df(df,start_date: str | None = None,
+               end_date: str | None = None,
+               cols: list | None = None, 
+               multiyear: list | None = None) -> pd.DataFrame:
     """ 
     Filters dataFrame.
 
@@ -236,7 +247,9 @@ def filter_df(df,start_date=None,end_date=None, cols=None, multiyear=None):
     return df
 
 
-def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=None, y_domains=None):
+def plot_columns_interactive(df, column_groups: dict, title: str | None = None, 
+                             xlabel: str | None = None, 
+                             y_domains: dict | None = None)-> go.Figure: 
     """
     Plot columns of a DataFrame in interactive plots with multiple y-axes using Plotly.
 
@@ -250,10 +263,8 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
         The title of the plot.
     xlabel : str, optional
         The label for the x-axis.
-    ylabel : str, optional
-        The label for the y-axis.
     y_domains : dict, optional
-        A dictionary where keys are integers representing the y-axis index and values are lists of two floats representing the domain of the y-axis.
+        A dictionary where keys are integers representing the y-axis index and values are lists of two floats representing the domain ( how much space each plot uses) of the y-axis.
         If None, default equidistant domains will be used based on the number of groups.
     date_focus : str, optional
         The initial focus point of the date selector buttons. Format: 'YYYY-MM-DD'.
@@ -277,7 +288,7 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
         # Update layout to add a new y-axis
         fig.update_layout(
             **{f'yaxis{i}': dict(
-                title=f"{group_name} [{ylabel}]", 
+                title=f"{group_name}", 
                 anchor='x', 
                 overlaying='y', 
                 side='left', 
@@ -331,7 +342,7 @@ def plot_columns_interactive(df, column_groups, title=None, xlabel=None, ylabel=
     shapes = []
     for date in break_up_times.index:
         shape = {"type": "line", "xref": "x", "yref": "paper", "x0": date, "y0": 0, "x1": date, "y1": 1,
-                 "line": {"color": 'red', "width": 0.6, "dash": 'dot'}, 'name': 'break up time'}
+                 "line": {"color": 'red', "width": 0.6, "dash": 'dot'}, 'name': 'break up times'}
         shapes.append(shape)
 
     fig.update_layout(shapes=shapes)
