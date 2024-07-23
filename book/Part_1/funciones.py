@@ -29,7 +29,6 @@ def explore_contents(data: pd.DataFrame,
     opt: Dictionary with options of different ways to explore the contents of the df
         `Info`: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
         `Time History`: Plots the contents of every column and the distribution of the values on it
-        `Sparsity`: Heatmap of contents, plots the sparsity of each column in time
 
       Returns:
     ----------
@@ -38,11 +37,11 @@ def explore_contents(data: pd.DataFrame,
 
         elif `Time History`=True-> plot with  the content/distribution of each column, 
 
-        elif `Sparsity`=True -> plot with the sparsity of the data in time
     """
 
     # Make a copy of the input data
     data = data.copy()
+ 
 
     if opt['Info']:
         data.info()
@@ -68,12 +67,12 @@ def explore_contents(data: pd.DataFrame,
         plt.tight_layout()
         plt.show()
 
-    if opt['Sparsity']:
-        data.index = data.index.year
-        plt.figure(figsize=(20, 10))
-        sns.heatmap(data.T.isnull(), cbar=False, cmap=colormap, yticklabels=data.columns)
-        plt.title('Sparsity of Time-Series')
-        plt.show()
+    # if opt['Sparsity']:
+    #     data.index = data.index.year
+    #     plt.figure(figsize=(20, 10))
+    #     sns.heatmap(data.T.isnull(), cbar=False, cmap=colormap, yticklabels=data.columns)
+    #     plt.title('Sparsity of Time-Series')
+    #     plt.show()
 
 
 def compare_columns(data: pd.DataFrame,

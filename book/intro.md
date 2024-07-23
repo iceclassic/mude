@@ -1,8 +1,8 @@
 (intro)=
 
-# Welcome to the iceclassic book!!. A MUDE Sidequest
+# Welcome to the iceclassic book!! A MUDE Sidequest
 
-The iceclassic book contains additional (and optional) content to the main MUDE book. This interactive books focusses in applying the programming concepts of MUDE to create a simple model.
+The iceclassic book contains additional (and optional) content to the main MUDE book. This interactive books focuses in applying the programming concepts of MUDE to create a simple model.
 
 Unlike the MUDE interactive book, the PAs  or the friday's assignments, we will use apply most of the concept to the same problem, in order to understand how they can complement each other, how they differ, etc.
 
@@ -18,7 +18,7 @@ You can see last year's ice break-up [here](https://youtu.be/hNCz1C4fkqo?list=PL
 
 ## Motivation
 
-Last year, every MUDE group submitted a guess, and on average we were off by almost a week
+Last year, every MUDE group submitted a guess, and on average they were off by almost a week
 
  ![Fig.1](../figures/Part1/2024_guesses_with_breakup.png)
 
