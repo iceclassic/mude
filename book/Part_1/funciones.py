@@ -29,6 +29,7 @@ def explore_contents(data: pd.DataFrame,
     opt: Dictionary with options of different ways to explore the contents of the df
         `Info`: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
         `Time History`: Plots the contents of every column and the distribution of the values on it
+        `Sparsity`: Heatmap of contents, plots the sparsity of each column in time
 
       Returns:
     ----------
@@ -37,11 +38,11 @@ def explore_contents(data: pd.DataFrame,
 
         elif `Time History`=True-> plot with  the content/distribution of each column, 
 
+        elif `Sparsity`=True -> plot with the sparsity of the data in time
     """
 
     # Make a copy of the input data
     data = data.copy()
- 
 
     if opt['Info']:
         data.info()
@@ -67,12 +68,12 @@ def explore_contents(data: pd.DataFrame,
         plt.tight_layout()
         plt.show()
 
-    # if opt['Sparsity']:
-    #     data.index = data.index.year
-    #     plt.figure(figsize=(20, 10))
-    #     sns.heatmap(data.T.isnull(), cbar=False, cmap=colormap, yticklabels=data.columns)
-    #     plt.title('Sparsity of Time-Series')
-    #     plt.show()
+    if opt['Sparsity']:
+        data.index = data.index.year
+        plt.figure(figsize=(20, 10))
+        sns.heatmap(data.T.isnull(), cbar=False, cmap=colormap, yticklabels=data.columns)
+        plt.title('Sparsity of Time-Series')
+        plt.show()
 
 
 def compare_columns(data: pd.DataFrame,
@@ -349,7 +350,8 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
     fig.show()
 
 
-def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historicalVariation=False, multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year', color='orangered', alpha=1):
+def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historicalVariation=False,
+                     multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year', color='orangered', alpha=1):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
@@ -362,7 +364,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
     historicalVariation (bool, optional): Whether to use different colors for each year's data. Default is False.
     multiyear (list or None, optional): The list of years to consider for filtering the data. 
                                         If None, all years are considered. Default is None.
-    Compare_years_to_baseline (bool, optional): Compare years to a baseline year. Default is False.
+    Compare_years_to_baseline (bool, optional): Compare specific years to a baseline year. Default is False.
     holdPlot (bool, optional): Whether to hold the plot and not display it. Default is False.
     xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".
 
@@ -408,7 +410,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=True, historica
         ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color, alpha=alpha)
 
         if plot_mean_std:
-            ax[i].plot(average.index, average, color='b', label=f'Average ±{k} std')
+            ax[i].plot(average.index, average, color='b', label=f'mean ±{k} std')
             ax[i].fill_between(average.index, average + k * std, average - k * std, color='b', alpha=0.2)
 
         ax[i].set_ylabel(f'{col}')
