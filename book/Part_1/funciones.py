@@ -17,8 +17,8 @@ def explore_contents(data: pd.DataFrame,
                      colormap: str = 'viridis',
                      opt: dict = {'Info':True,
                                   'Time History': True,
-                                  'Sparsity':True}
-                     ) -> plt.figure:
+                                  'Sparsity':True},
+                    **kwargs) -> plt.figure:
     """
     Function that print a summary of th dataframe and plots the content/distribution of each column
     
@@ -30,7 +30,7 @@ def explore_contents(data: pd.DataFrame,
         `Info`: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
         `Time History`: Plots the contents of every column and the distribution of the values on it
         `Sparsity`: Heatmap of contents, plots the sparsity of each column in time
-
+    **kwargs: Additional keyword arguments to be passed to the plotting functions ( standard matplotlib arguments such as color, alpha,etc)
       Returns:
     ----------
     Depending on the options selected in the dictionary , the function will return
@@ -49,7 +49,7 @@ def explore_contents(data: pd.DataFrame,
 
     if opt['Time History']:
         fig, axs = plt.subplots(nrows=len(data.columns), ncols=2, figsize=(20, 3*len(data.columns)), 
-                                gridspec_kw={'width_ratios': [3, 1]})  # Adjust the width ratio here
+                                gridspec_kw={'width_ratios': [3, 1]},**kwargs)  # Adjust the width ratio here
         plt.subplots_adjust(wspace=0.2)  
 
         for i, col in enumerate(data.columns):
@@ -57,11 +57,11 @@ def explore_contents(data: pd.DataFrame,
             col_data = data[col].copy()
             col_data.dropna(inplace=True)
             if not col_data.empty:
-                axs[i, 0].plot(col_data.index, col_data.values, label=col, color=plt.cm.tab10(i % 10))
+                axs[i, 0].plot(col_data.index, col_data.values, label=col, color=plt.cm.tab10(i % 10),**kwargs)
                 axs[i, 0].legend()
                 axs[i, 0].set_title(str(col)+': Time Series')  # Title for the line plot
             # Plot density 
-                data[col].plot.density(ax=axs[i, 1])
+                data[col].plot.density(ax=axs[i, 1],**kwargs)
                 axs[i, 1].set_xlim(left=data[col].min(), right=data[col].max())  # Set x-axis limits to column range
                 axs[i, 1].set_ylabel('Density')
                 axs[i, 1].set_title(str(col)+': Distribution')  # Title for the line plot
@@ -351,7 +351,7 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
 
 
 def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historicalVariation=False,
-                     multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year', color='orangered', alpha=1):
+                     multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year',xlim=None,**kwargs):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
@@ -367,7 +367,8 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historic
     Compare_years_to_baseline (bool, optional): Compare specific years to a baseline year. Default is False.
     holdPlot (bool, optional): Whether to hold the plot and not display it. Default is False.
     xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".
-
+    xlim (list, optional): limit to the xaxis when plotting
+    **kwargs: Additional keyword arguments to be passed to the plotting functions ( standard matplotlib arguments such as color, alpha,etc)
     Returns:
     None
     """
@@ -399,6 +400,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historic
             for year in multiyear:
                 if year in df_nonan['Year'].unique():
                     year_data = df_nonan[df_nonan['Year'] == year]
+                    year_data = year_data.sort_values(by=xaxis)  # useful when xaxis spans multiple years to avoid lines crossing whe using plot
                     ax[i].plot(year_data[xaxis], year_data[col], color=cmap(norm(year)))
                 else:
                     print(f"No {col} data available for year {year}")
@@ -407,7 +409,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historic
                 year_data = df_nonan[df_nonan['Year'] == year]
                 ax[i].scatter(year_data[xaxis], year_data[col], marker='.', color=cmap(norm(year)))
 
-        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color, alpha=alpha)
+        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col,**kwargs)
 
         if plot_mean_std:
             ax[i].plot(average.index, average, color='b', label=f'mean ±{k} std')
@@ -417,6 +419,7 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historic
         ax[i].set_title(f'{col}')
         ax[i].legend()
         ax[i].set_xlabel(f'Days since {xaxis}')
+        ax[i].set_xlim(xlim)
 
         if Compare_years_to_baseline or historicalVariation:
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -620,7 +623,7 @@ def import_data_browser(url):
 
     return csv_data
 
-def days_since_last_date(df, date_or_dates, name=None):
+def days_since_last_date(df, date, name=None):
     """
     Calculate the number of days since the last occurrence of a given month and day or a list of dates.
 
@@ -666,29 +669,44 @@ def days_since_last_date(df, date_or_dates, name=None):
 
         return days_diff
 
-    # Handle a single date or a special date keyword
-    if isinstance(date_or_dates, str):
-        if date_or_dates == 'Summer Solstice':
+    # date or a special date keyword
+    if isinstance(date, str):
+        if date == 'Summer Solstice':
             month, day = 6, 21
-        elif date_or_dates == 'Winter Solstice':
+        elif date == 'Winter Solstice':
             month, day = 12, 21
-        elif date_or_dates == 'Spring Equinox':
+        elif date == 'Spring Equinox':
             month, day = 3, 21
-        elif date_or_dates == 'Fall Equinox':
+        elif date == 'Fall Equinox':
             month, day = 9, 21
-        else:
-            month, day = map(int, date_or_dates.split('/'))
+        else: # string wiht date  'MM/DD' ( cannot have years as this loop computes the date for each year)
+            month, day = map(int, date.split('/'))
         
         target_date = datetime(df.index[0].year, month, day)
-        column_name = name if name else date_or_dates
+        column_name = name if name else date
         df[column_name] = df.index.map(lambda x: days_since(x, target_date))
 
-    # Handle a list of dates
-    elif isinstance(date_or_dates, list):
-        for date_str in date_or_dates:
-            target_date = datetime.strptime(date_str, '%Y/%m/%d')
-            column_name = f'days_since_{date_str}'
-            df[column_name] = df.index.map(lambda x: days_since(x, target_date))
+    # list of dates
+    elif isinstance(date, list):
+        # Convert date strings to datetime objects
+        past_dates = [datetime.strptime(date_str, '%Y/%m/%d') for date_str in date]
+
+        # Function to find the closest past date and calculate days since
+        def closest_past_days(current_date):
+            # Filter for valid past dates
+            valid_dates = [d for d in past_dates if d <= current_date]
+            
+            # If no valid dates, return None or desired value
+            if not valid_dates:
+                return None
+            
+            # Find the closest past date
+            closest_date = max(valid_dates)
+            return (current_date - closest_date).days
+
+        column_name = name if name else 'days_since_closest_date'
+        df[column_name] = df.index.map(closest_past_days)
+
 
     return df
 
