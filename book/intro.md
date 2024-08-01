@@ -2,9 +2,13 @@
 
 # Welcome to the iceclassic book!! A MUDE Sidequest
 
-The iceclassic book contains additional (and optional) content to the main MUDE book. This interactive books focuses in applying the programming concepts of MUDE to create a simple model.
+The iceclassic book contains additional (and optional) content to the main MUDE book. Throughout the book, we will tackle a single problem: the Nenana Ice Classic.
 
-Unlike the MUDE interactive book, the PAs  or the friday's assignments, we will use apply most of the concept to the same problem, in order to understand how they can complement each other, how they differ, etc.
+In the first chapter, we will familiarize ourselves with the problem, find, choose, and prepocess data that might be pertinent to the problem.
+
+In the second chapter, we will build a few simple models to try to solve the problem at hand.
+
+Throughout the book, we will use the programming techniques you will learn during the lectures and workshops, and briefly introduce new techniques.
 
 ## Nenana Ice Classic
 
@@ -15,24 +19,16 @@ Originating in 1906 as a small betting pool among six friends, the first winner,
 Each year, a tripod is set up on the ice during the first weekend in March. The break-up time is determined using a unique system where the clock stops once the tripod, connected by a pulley system, has drifted 100 feet downstream.
 
 You can see last year's ice break-up [here](https://youtu.be/hNCz1C4fkqo?list=PLo0kgRXad08K-7DV00t4WNzKaaHovr2wi&t=208). For more information, visit the official Nenana Ice Classic [webpage](https://www.nenanaakiceclassic.com/).
-
+> fix problem with embedded video 
 ## Motivation
 
-Last year, every MUDE group submitted a guess, and on average they were off by almost a week
+Last year, on the last friday's assignment every MUDE group submitted a guess, the results can be seen in the next figure
 
  ![Fig.1](../figures/Part1/2024_guesses_with_breakup.png)
 
-There is a lot of room for improvement!!!
+in average they were off by almost a week. There is a lot of room for improvement!!!
 
-## Scope
-
-#### Part 1 - Applying MUDE concepts
-
-In the first part, we will individually apply each MUDE concept to a subset of the main problem.
-We will also focus on programming aspect related to the use of Pandas and other programming aspects that might have been overlooked during MUDE.
-
-#### Part 2- Building a model
-The second part of the book, we will clearly define the problem at hand. Based on this, we will outline the objectives our model needs to achieve and detail how the model will accomplish these goals.
+> mention how to contribute, and invitation to MUDE Q3 2024-25?
 
 ## Authors
 

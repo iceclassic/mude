@@ -61,7 +61,7 @@ def explore_contents(data: pd.DataFrame,
                 axs[i, 0].legend()
                 axs[i, 0].set_title(str(col)+': Time Series')  # Title for the line plot
             # Plot density 
-                data[col].plot.density(ax=axs[i, 1],**kwargs)
+                data[col].plot.density(ax=axs[i, 1])
                 axs[i, 1].set_xlim(left=data[col].min(), right=data[col].max())  # Set x-axis limits to column range
                 axs[i, 1].set_ylabel('Density')
                 axs[i, 1].set_title(str(col)+': Distribution')  # Title for the line plot
@@ -223,28 +223,29 @@ def filter_df(df,start_date: str | None = None,
         The filtered DataFrame
 
  """
+    df2=df.copy()
     # Ensure multiyear is a list if not provided
     if multiyear is None:
         multiyear = []
 
     if multiyear:
-        df = df[df.index.year.isin(multiyear)]
+        df2 = df2[df2.index.year.isin(multiyear)]
 
     # Filter by month/day range if both start_date and end_date are provided
     if (start_date is not None) and (end_date is not None):
         start_date = pd.to_datetime(start_date, format='%m/%d')
         end_date = pd.to_datetime(end_date, format='%m/%d')
-        mask = (df.index.month == start_date.month) & (df.index.day >= start_date.day) \
-| (df.index.month == end_date.month) & (df.index.day <= end_date.day)
+        mask = (df2.index.month == start_date.month) & (df2.index.day >= start_date.day) \
+| (df2.index.month == end_date.month) & (df2.index.day <= end_date.day)
         
 
-        df = df[mask]
+        df2 = df2[mask]
 
     # Select specific columns if provided
     if cols is not None:
-        df = df[cols]
+        df2 = df2[cols]
 
-    return df
+    return df2
 
 
 def plot_columns_interactive(df, column_groups: dict, title: str | None = None, 
