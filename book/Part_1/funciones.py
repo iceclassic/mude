@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
+import plotly.express as px
 import numpy as np
+import warnings
 import pandas as pd
 from scipy.signal import welch,find_peaks, butter, lfilter, filtfilt
 from scipy.fft import fft, fftfreq
@@ -712,206 +714,209 @@ def days_since_last_date(df, date, name=None):
     return df
 
 
-def plot_interactive_map():
-    
-    plotly.offline.init_notebook_mode()
+def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
+    """
+        Plot an interactive map using Plotly and Mapbox.
 
+        Parameters:
+        - Pfafstetter_levels (int): The Pfafstetter level for selecting basins. Should be between 0 and 12.
+        - plot_only_near_basin (bool): If True, only plot basins near the Arctic region. If False, plot all basins.
+        Returns:
+        None
+    """
+    if Pfafstetter_levels > 4 and plot_only_near_basin==False: 
+        #gdf_temp = gpd.read_file(file, rows=1)  # Just read the first row to initialize and check length without laoding the whole file
+        #gdf_basin_len = gpd.read_file(file).shape[0] # too slow withouf using external libries
 
+        warnings.warn(f'Performance warning: Printing wathershed basin at this level of detail could be slow', UserWarning)
+        
+        confirmation = input("Do you want to continue? (yes/no): ").strip().lower()
+        if confirmation != 'yes':
+            print("Operation cancelled.")
+            return None 
 
-
-    # Define click event handler
+    # plot near bases is Flase it lpots all the basin in the arctic region, if the pfastetter elvel is over 4 and plot_only_near_basin is False it coudl taka minute to create HTML interative plot
+        
+    # Define click event handler (to move around the map and get the coordinates)
     def click_callback(trace, points, selector):
         if points:
             lat = points.xs[0]
             lon = points.ys[0]
             print(f"Latitude: {lat}, Longitude: {lon}")
 
-    # Latitude and longitude coordinates for Nenana, Alaska
+    plotly.offline.init_notebook_mode()
+
+
+    # Latitude and longitude coordinates for weather station and other polygons manually added
     nenana_lat = 64.56702898502982
     nenana_lon = -149.0815700675435
 
-    USW00026435_NENANA_LAT=64.54725
-    USW00026435_NENANA_LOG=	-149.08713
+    USW00026435_NENANA_LAT = 64.54725
+    USW00026435_NENANA_LOG = -149.08713
 
-    USW00026435_Fairbanks_LAT=64.80309
-    USW00026435_Fairbanks_LOG=	-147.87606
+    USW00026435_Fairbanks_LAT = 64.80309
+    USW00026435_Fairbanks_LOG = -147.87606
 
-    square_lat = [64, 64, 65, 65,64]  # Latitude of vertices
-    square_lon = [-150, -149, -149, -150,-150]  # Longitude of vertices
+    square_lat = [64, 64, 65, 65, 64]  # Latitude of vertices
+    square_lon = [-150, -149, -149, -150, -150]  # Longitude of vertices
 
-    gulkana_lat= 63.2818
-    gulkana_lon=-145.426 
+    gulkana_lat = 63.2818
+    gulkana_lon = -145.426 
 
-    usgs_tenana_river_lat=64.5649444
-    usgs_tenana_river_lon=-149.094 
+    usgs_tenana_river_lat = 64.5649444
+    usgs_tenana_river_lon = -149.094 
 
-    usgs_tenana_fairbanks_lat=64.792344 
-    usgs_tenana_fairbanks_lon=-147.8413097 
+    usgs_tenana_fairbanks_lat = 64.792344 
+    usgs_tenana_fairbanks_lon = -147.8413097 
 
-    square_lat_w = [64, 64, 66, 66,64]  # Latitude of vertices
-    square_lon_w = [-151, -149, -149, -151,-151]  # Longitude of vertices
+    square_lat_w = [64, 64, 66, 66, 64]  # Latitude of vertices
+    square_lon_w = [-151, -149, -149, -151, -151]  # Longitude of vertices
 
-    #hydrographic_gdf = gpd.read_file('../../data/shape_files/hybas_na_lev01_v1c.shp')
 
-    # Initialize Plotly figure with initial zoom level and center coordinates
-    fig = go.Figure()
+ 
+    # changing the level to higher number yield more basin, using Pfafstetter levels 1-12 source HydroBASINS
+    file='../../data/shape_files/hybas_lake_ar_lev'+'{:02d}'.format(Pfafstetter_levels)+'_v1c.shp'
+    gdf_basin_lev = gpd.read_file(file)
+    if plot_only_near_basin:
+        if Pfafstetter_levels==1:
+            gdf_basin_lev = gdf_basin_lev.iloc[[0]] # Filter the GeoDataFrame to include some basin ( its to heavy/slow if we include eveythin)
+        elif Pfafstetter_levels==2:
+            gdf_basin_lev = gdf_basin_lev.iloc[[0]]
+        elif Pfafstetter_levels==3:
+            gdf_basin_lev = gdf_basin_lev.iloc[[1]]
+        elif Pfafstetter_levels==4:
+            gdf_basin_lev = gdf_basin_lev.iloc[[15]]
+        elif Pfafstetter_levels==5:
+            gdf_basin_lev = gdf_basin_lev.iloc[[41,42,43,44]]
+        elif Pfafstetter_levels==6:
+            gdf_basin_lev = gdf_basin_lev.iloc[[80,81,82,82]]
 
-    # Add markers
+
+   
+
+    fig = px.choropleth_mapbox(
+        gdf_basin_lev,
+        geojson=gdf_basin_lev.geometry,
+        locations=gdf_basin_lev.index,
+        color=gdf_basin_lev.index,
+        center={"lat": nenana_lat, "lon": nenana_lon},
+        opacity=0.2,
+        hover_name=gdf_basin_lev['HYBAS_ID'],
+    )
+
+    # file_river='../../data/shape_files/HydroRIVERS_v10_ar.shp'
+    # gdf_basin_riv = gpd.read_file(file_river)   
+    # gdf_basin_riv.info()
+    # fig = px.choropleth_mapbox(
+    #     gdf_basin_riv,
+    #     geojson=gdf_basin_riv.geometry,
+    #     locations=gdf_basin_riv.index,
+    #     color=gdf_basin_riv['ORD_FLOW'],
+    #     center={"lat": nenana_lat, "lon": nenana_lon},
+    #     opacity=0.2,
+    #     hover_name=gdf_basin_riv['HYRIV_ID'],
+    # )
+ 
+ 
+    # fig.update_traces(
+    # hovertemplate='<b>HYRIV_ID</b>: %{customdata}<extra></extra>',  # Custom hover text
+    # customdata=gdf_basin_riv['HYRIV_ID']  # Assign the data for hover text
+# )
+ 
     fig.add_trace(go.Scattermapbox(
-        lat=[nenana_lat],
-        lon=[nenana_lon],
+        lat=[nenana_lat], lon=[nenana_lon],
         mode='markers',
-        marker=dict(
-            size=10,
-            color='purple',
-            opacity=0.8  # Increase opacity
-        ),
+        marker=dict(size=10, color='purple', opacity=0.8),
         text=["NENANA tripod"],  # Text label for the marker
-        hoverinfo="text" , # Only show text on hover
-        name="Ice classic tripod"
-    ))
+        hoverinfo="text",
+        name="Ice classic tripod"))  # text on legend
+
     fig.add_trace(go.Scattermapbox(
-        lat=[USW00026435_NENANA_LAT],
-        lon=[USW00026435_NENANA_LOG],
+        lat=[USW00026435_NENANA_LAT], lon=[USW00026435_NENANA_LOG],
         mode='markers',
-        marker=dict(
-            size=10,
-            color='red',
-            opacity=0.8  # Increase opacity
-        ),
-        text=["USGS Weather Station USW00026435"],  # Text label for the marker
-        hoverinfo="text",  # Only show text on hover
-        name="Nenana Weather Station"
-    ))
+        marker=dict(size=10, color='red', opacity=0.8),
+        text=["USGS Weather Station USW00026435"],
+        hoverinfo="text",
+        name="Nenana Weather Station"))
+
     fig.add_trace(go.Scattermapbox(
-        lat=[USW00026435_Fairbanks_LAT],
-        lon=[USW00026435_Fairbanks_LOG],
+        lat=[USW00026435_Fairbanks_LAT], lon=[USW00026435_Fairbanks_LOG],
         mode='markers',
-        marker=dict(
-            size=10,
-            color='red',
-            opacity=0.8  # Increase opacity
-        ),
-        text=["USGS Weather Station USW00026411"],  # Text label for the marker
-        hoverinfo="text",  # Only show text on hover
-        name="Fairbanks Weather Station"
-    ))
+        marker=dict(size=10, color='red', opacity=0.8),
+        text=["USGS Weather Station USW00026411"],
+        hoverinfo="text",
+        name="Fairbanks Weather Station"))
+
     fig.add_trace(go.Scattermapbox(
-        lat=square_lat,
-        lon=square_lon,
+        lat=square_lat, lon=square_lon,
         mode='lines',  # Draw lines between vertices
         line=dict(color='yellow'),  # Color of the lines
         fill='toself',  # Fill the inside of the polygon
         fillcolor='rgba(255, 239,0, 0.1)',
         name='Temperature',
         text="Berkeley Earth Global",
-        hoverinfo='text'
-    ))
+        hoverinfo='text'))
+
     fig.add_trace(go.Scattermapbox(
-        lat=[gulkana_lat],
-        lon=[gulkana_lon],
-        mode='markers',  # Draw lines between vertices
-        marker=dict(
-            size=10,
-            color='blue',
-            opacity=0.8  # Increase opacity
-        ),
-        name='Gulkana  Glacier',
-        text="USGS  Weather Station  15485500",
-        hoverinfo='text'
-    ))
+        lat=[gulkana_lat], lon=[gulkana_lon],
+        mode='markers',
+        marker=dict(size=10, color='blue', opacity=0.8),
+        name='Gulkana Glacier',
+        text="USGS Weather Station 15485500",
+        hoverinfo='text'))
+
     fig.add_trace(go.Scattermapbox(
-        lat=[usgs_tenana_river_lat],
-        lon=[usgs_tenana_river_lon],
-        mode='markers',  # Draw lines between vertices
-        marker=dict(
-            size=10,
-            color='green',
-            opacity=0.8  # Increase opacity
-        ),
+        lat=[usgs_tenana_river_lat], lon=[usgs_tenana_river_lon],
+        mode='markers',
+        marker=dict(size=10, color='green', opacity=0.8),
         name='Tenana R at Nenana',
-        text="USGS  Weather Station 15515500",
-        hoverinfo='text'
-    ))
+        text="USGS Weather Station 15515500",
+        hoverinfo='text'))
+
     fig.add_trace(go.Scattermapbox(
-        lat=[usgs_tenana_fairbanks_lat],
-        lon=[usgs_tenana_fairbanks_lon],
-        mode='markers',  # Draw lines between vertices
-        marker=dict(
-            size=10,
-            color='green',
-            opacity=0.8  # Increase opacity
-        ),
+        lat=[usgs_tenana_fairbanks_lat], lon=[usgs_tenana_fairbanks_lon],
+        mode='markers', 
+        marker=dict(size=10, color='green', opacity=0.8),
         name='Tenana R at Fairbanks',
-        text="USGS  Weather Station 15515500",
-        hoverinfo='text'
-    ))
+        text="USGS Weather Station 15515500",
+        hoverinfo='text'))
+
     fig.add_trace(go.Scattermapbox(
-        lat=square_lat_w,
-        lon=square_lon_w,
-        mode='lines',  # Draw lines between vertices
-        line=dict(color='pink'),  # Color of the lines
+        lat=square_lat_w, lon=square_lon_w,
+        mode='lines',
+        line=dict(color='pink'), 
         fill='toself',  # Fill the inside of the polygon
         fillcolor='rgba(255, 20,147, 0.01)',
         name='Solar Radiation and Cloud Coverage',
         text="TEMIS & NERC-EDS",
-        hoverinfo='text'
-    ))
-    # fig.add_trace(go.Scattermapbox(
-    #     lat=hydrographic_gdf.geometry.y,
-    #     lon=hydrographic_gdf.geometry.x,
-    #     mode='markers',
-    #     marker=dict(
-    #         size=8,
-    #         color='blue',
-    #         opacity=0.6
-    #     ),
-    #     name='Hydrographic Information',
-    #     text=hydrographic_gdf['name'],  # Assuming there's a 'name' column
-    #     hoverinfo='text'
-    # ))
+        hoverinfo='text'))
 
+    print(len(gdf_basin_lev))
 
+    visibility_list_all=[True,True,True,True,True,True,True,True,True]
+    visibility_list_weathers_stations=[False,True,True,True,False,True,True,True,False]
+    visibility_list_basins=[True,False,False,False,False,False,False,False,False]
 
     fig.update_layout(
         mapbox_style="open-street-map",
-        mapbox=dict(
-            center=dict(lat=nenana_lat, lon=nenana_lon),
-            zoom=5
-        ),
+        mapbox=dict(center=dict(lat=nenana_lat, lon=nenana_lon), zoom=5),
         margin=dict(l=0, r=0, t=0, b=0),  # Set margins to zero
-        legend=dict(
-            x=0,
-            y=1,
-            xanchor='left',
-            yanchor='top',
-            orientation='v'
-        ),
-        updatemenus=[  # Add buttons for layer toggling
+        legend=dict(x=0, y=1, xanchor='left', yanchor='top', orientation='v'),
+        updatemenus=[  # Add buttons for toggling layers
             dict(
                 buttons=list([
-                    dict(
-                        args=['visible', [False, False, False, True, True, True, True, True, False, False]],
-                        label='Hide (some) Layers',
-                        method='restyle'
-                    ),
-                    dict(
-                        args=['visible', [True, True, True, True, True, True, True, True, True, True]],
-                        label='Show (all) Layers',
-                        method='restyle'
-                    )
+                    dict(args=['visible', visibility_list_all],
+                        label='Show all',
+                        method='restyle'),
+                    dict(args=['visible', visibility_list_weathers_stations],
+                        label='Show weather Stations',
+                        method='restyle'),
+                    dict(args=['visible', visibility_list_basins],
+                        label='Show basins'+str(Pfafstetter_levels),
+                        method='restyle')
                 ]),
-                direction='left',
-                pad={'r': 10, 't': 10},
-                showactive=True,
-                type='buttons',
-                x=0.1,
-                xanchor='left',
-                y=1.1,
-                yanchor='top'
-            ),
-        ]
-    )
+                direction='left', pad={'r': 10, 't': 10}, showactive=True, type='buttons', x=0.1, xanchor='left', y=1.1, yanchor='top'),
+        ])
 
     # Add invisible scatter plot trace to capture click events
     click_trace = go.Scattermapbox(lat=[], lon=[], mode='markers', marker=dict(opacity=0))
@@ -920,6 +925,6 @@ def plot_interactive_map():
     # Update click event handler
     click_trace.on_click(click_callback)
 
-
     # Show interactive plot
-    fig.show()
+    #fig.show()
+    fig.write_html('interactive_map.html')

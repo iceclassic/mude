@@ -2,13 +2,15 @@
 
 # Welcome to the iceclassic book!! A MUDE Sidequest
 
-The iceclassic book contains additional (and optional) content to the main MUDE book. Throughout the book, we will tackle a single problem: the Nenana Ice Classic.
+The iceclassic book contains additional (and optional) content to the main MUDE interactive book. Throughout the book, we will tackle a single problem: the Nenana Ice Classic.
 
-In the first chapter, we will familiarize ourselves with the problem, find, choose, and prepocess data that might be pertinent to the problem.
+In the first part, we will familiarize ourselves with the problem, find, choose, and preprocess data that might be pertinent to the problem.
 
-In the second chapter, we will build a few simple models to try to solve the problem at hand.
+In the second part, we will build a few simple models to try to solve the problem at hand.
 
 Throughout the book, we will use the programming techniques you will learn during the lectures and workshops, and briefly introduce new techniques.
+
+
 
 ## Nenana Ice Classic
 
