@@ -251,29 +251,6 @@ def filter_df(df,start_date: str | None = None,
 
 
 def plot_columns_interactive(df, column_groups: dict, title: str | None = None, 
-                             xlabel: str | None = None, 
-                             y_domains: dict | None = None)-> go.Figure: 
-    """
-    Plot columns of a DataFrame in interactive plots with multiple y-axes using Plotly.
-
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        The input DataFrame.
-    column_groups : dict
-        A dictionary where keys are group names and values are lists of column names to be plotted together.
-    title : str, optional
-        The title of the plot.
-    xlabel : str, optional
-        The label for the x-axis.
-    date_focus : str, optional
-        The initial focus point of the date selector buttons. Format: 'YYYY-MM-DD'.
-
-    RETURN
-    ------
-    fig : plotly.graph_objs.Figure
-    """
-def plot_columns_interactive(df, column_groups: dict, title: str | None = None, 
                              xlabel: str | None = 'Date', 
                              y_domains: dict | None = None)-> go.Figure: 
     """
@@ -384,8 +361,10 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
     return fig
 
 
-def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historicalVariation=False,
-                     multiyear=None, Compare_years_to_baseline=False, holdPlot=False, xaxis='Days since start of year',xlim=None,**kwargs):
+
+def plot_seasonal(df, columns_to_plot=None, k=1, plot_mean_std=False,
+                  multiyear=None, plot_together=False, 
+                  xaxis='Days since start of year', xaxis_name=None, xlim=None,col_cmap='Set1',years_cmap='viridis',scatter_alpha=0.1,std_alpha=0.3,ylim=None):
     """
     Plot the yearly distribution of temperature data for specified columns.
 
@@ -394,34 +373,42 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historic
     columns_to_plot (list, optional): List of column names to plot. 
                                       If None, plot all columns except xaxis column.
     k (int, optional): Number of standard deviations to plot around the average.
-    plot_mean_std (bool, optional): Whether to plot the mean and standard deviation. Default is True.
-    historicalVariation (bool, optional): Whether to use different colors for each year's data. Default is False.
+    plot_mean_std (str, optional): Whether to plot the mean and standard deviation. Default is True. if only, the scatter is not plotted
     multiyear (list or None, optional): The list of years to consider for filtering the data. 
                                         If None, all years are considered. Default is None.
-    Compare_years_to_baseline (bool, optional): Compare specific years to a baseline year. Default is False.
-    holdPlot (bool, optional): Whether to hold the plot and not display it. Default is False.
+    plot_together (bool, optional): If True, plot all specified columns together on a single plot. Default is False.
     xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".
-    xlim (list, optional): limit to the xaxis when plotting
-    **kwargs: Additional keyword arguments to be passed to the plotting functions ( standard matplotlib arguments such as color, alpha,etc)
+    xlim (list, optional): Limit to the x-axis when plotting.
+    seq_map (str, optional): Sequential colormap to use for plotting different columns (matplotlib cmaps). Default is 'Set1'.
+    year_map (str, optional): Sequential colormap to use for plotting different years (matplotlib cmaps). Default is 'viridis'.
+    scatter_alpha (float, optional): Alpha value for the scatter plot. Default is 0.01.
+    std_alpha (float, optional): Alpha value for the  fill area in the standard deviation plot. Default is 0.3.
+    ylim (list, optional): Limit to the y-axis when plotting. Each element is list with the limits for each column.
     Returns:
     None
     """
+    seq_map = plt.get_cmap(col_cmap)
+    colors = seq_map(np.linspace(0,1, len(columns_to_plot))) 
     if columns_to_plot is None:
         columns_to_plot = [col for col in df.columns if col != xaxis]
+    if multiyear is None:
+        compare_years_to_baseline = False
+    else:
+        compare_years_to_baseline =True
+    if xaxis_name is None:
+        xaxis_name = xaxis
+    if plot_together:
+        fig, ax = plt.subplots(figsize=(20, 5))
+    
+    else:
+        num_plots = len(columns_to_plot)
+        fig, ax = plt.subplots(num_plots, 1, figsize=(20, 5 * num_plots))
+        if num_plots == 1:
+            ax = [ax]  # Make ax iterable
 
-    num_plots = len(columns_to_plot)
-    fig, ax = plt.subplots(num_plots, 1, figsize=(15, 5 * num_plots))
-
-    if num_plots == 1:
-        ax = [ax]  # Make ax iterable
-
-    if Compare_years_to_baseline:
-        cmap = plt.get_cmap('viridis')
+    if compare_years_to_baseline:
+        cmap = plt.get_cmap(years_cmap)
         norm = plt.Normalize(min(multiyear), max(multiyear))
-    elif historicalVariation:
-        years = df.index.year.unique()
-        cmap = plt.get_cmap('viridis', len(years))
-        norm = plt.Normalize(min(years), max(years))
 
     for i, col in enumerate(columns_to_plot):
         df_nonan = df[[col, xaxis]].dropna()
@@ -430,40 +417,61 @@ def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historic
         average = df_nonan.groupby(xaxis)[col].mean()
         std = df_nonan.groupby(xaxis)[col].std()
 
-        if Compare_years_to_baseline:
-            for year in multiyear:
-                if year in df_nonan['Year'].unique():
-                    year_data = df_nonan[df_nonan['Year'] == year]
-                    year_data = year_data.sort_values(by=xaxis)  # useful when xaxis spans multiple years to avoid lines crossing whe using plot
-                    ax[i].plot(year_data[xaxis], year_data[col], color=cmap(norm(year)))
-                else:
-                    print(f"No {col} data available for year {year}")
-        elif historicalVariation:
-            for year in years:
-                year_data = df_nonan[df_nonan['Year'] == year]
-                ax[i].scatter(year_data[xaxis], year_data[col], marker='.', color=cmap(norm(year)))
+        if plot_together:
+            color = colors[i]  # Use a unique color for each column
+            if compare_years_to_baseline:
+                for year in multiyear:
+                    if year in df_nonan['Year'].unique():
+                        year_data = df_nonan[df_nonan['Year'] == year]
+                        year_data = year_data.sort_values(by=xaxis)
+                        ax.plot(year_data[xaxis], year_data[col], label=f'{col} {year}', color=cmap(norm(year)))
+                    else:
+                        print(f"No {col} data available for year {year}")
 
-        ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col,**kwargs)
+            if plot_mean_std:
+                ax.plot(average.index, average, color=color, label=f'mean {col} ±{k} std', alpha=1,linewidth=3)  # Mean line with full opacity
+                ax.fill_between(average.index, average + k * std, average - k * std, color=color, alpha=std_alpha)  #
+            if plot_mean_std !='only':
+                ax.scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color,alpha=scatter_alpha)
+            ax.set_xlabel(f'{xaxis_name}')
+        else:
+            # Individual plots for each column   label=f'{col} {year}'
+            if compare_years_to_baseline:
+                for year in multiyear:
+                    if year in df_nonan['Year'].unique():
+                        year_data = df_nonan[df_nonan['Year'] == year]
+                        year_data = year_data.sort_values(by=xaxis)
+                        ax[i].plot(year_data[xaxis], year_data[col], color=cmap(norm(year)))
+                    else:
+                        print(f"No {col} data available for year {year}")
+        
+            if plot_mean_std:
+                ax[i].plot(average.index, average, color=colors[i], label=f'mean ±{k} std', alpha=1,linewidth=3)  
+                ax[i].fill_between(average.index, average + k * std, average - k * std, color=colors[i], alpha=std_alpha)   
+            if plot_mean_std !='only':
+                ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=colors[i],alpha=scatter_alpha)
+            ax[i].set_ylabel(f'{col}')
+            ax[i].set_title(f'{col}')
+            ax[i].set_xlabel(f'{xaxis_name}')
+            ax[i].set_xlim(xlim)
+            ax[i].set_ylim(ylim[i] if ylim else None)
 
-        if plot_mean_std:
-            ax[i].plot(average.index, average, color='b', label=f'mean ±{k} std')
-            ax[i].fill_between(average.index, average + k * std, average - k * std, color='b', alpha=0.2)
-
-        ax[i].set_ylabel(f'{col}')
-        ax[i].set_title(f'{col}')
-        ax[i].legend()
-        ax[i].set_xlabel(f'Days since {xaxis}')
-        ax[i].set_xlim(xlim)
-
-        if Compare_years_to_baseline or historicalVariation:
+        if compare_years_to_baseline: 
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
             sm.set_array([])
-            cbar = fig.colorbar(sm, ax=ax[i])
+            cbar = fig.colorbar(sm, ax=ax if plot_together else ax[i])
             cbar.set_label('Year')
 
+        if not plot_together:
+            ax[i].legend()
+    
+    if plot_together:
+        ax.legend()
+
     plt.tight_layout()
-    if not holdPlot:
-        plt.show()
+    plt.show()
+   
+
 
 
 def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_filter=False, max_allowed_freq=None,
@@ -574,6 +582,7 @@ def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_f
 
     return psd_dict
 
+
 def compute_and_plot_fourier(df, cols=None, plot_period=False):
     """
     Compute and plot the Fourier Transform for the specified columns in the DataFrame.
@@ -638,6 +647,7 @@ def compute_and_plot_fourier(df, cols=None, plot_period=False):
 
     return fft_dict
 
+
 def import_data_browser(url):
     """
     This function imports data from a specified URL.
@@ -656,6 +666,7 @@ def import_data_browser(url):
     csv_data = StringIO(response.text)
 
     return csv_data
+
 
 def days_since_last_date(df, date, name=None):
     """
