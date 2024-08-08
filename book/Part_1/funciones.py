@@ -67,8 +67,8 @@ def explore_contents(data: pd.DataFrame,
                 axs[i, 1].set_xlim(left=data[col].min(), right=data[col].max())  # Set x-axis limits to column range
                 axs[i, 1].set_ylabel('Density')
                 axs[i, 1].set_title(str(col)+': Distribution')  # Title for the line plot
-        plt.tight_layout()
-        plt.show()
+        fig.tight_layout()
+        fig.show()
 
     if opt['Sparsity']:
         data.index = data.index.year
@@ -78,56 +78,56 @@ def explore_contents(data: pd.DataFrame,
         plt.show()
 
 
-def compare_columns(data: pd.DataFrame,
-                    cols: list,
+def compare_columns(df: pd.DataFrame,
+                    columns:list,
                     colormap: str = 'RdYlBu',
                     norm_type: str | None = None,
-                    correlation: bool = False
+                    correlation: bool = False,
+                    **kwargs
                     ) -> plt.figure:
     """
-    Function that plot multiple columns of a DataFrame and their correlation matrix.
+    Super simple function thats plot multiple columns of a DataFrame in a single plot.
 
      Parameters
     ----------
-    data: pandas.DataFrame, where the index is a datetime object
-    cols: list of column names as strings to compare
+    df: pandas.DataFrame, where the index is a datetime object
+    columns: list of str with the columns to plot
     colormap: Name of the matplotlib cmap to use
     norm_type: str indicating the type of normalization, 'min_max' or 'z-norm'
     correlation: bool indicating if the correlation matrix should be plotted
     """
+    
+    fig, axs = plt.subplots(1, ncols=2, figsize=(20, 5), gridspec_kw={'width_ratios': [3, 2]})
+    plt.subplots_adjust(wspace=0.1)
 
-    # Make a copy of the input data
-    data = data.copy()
+    # Normalize the DataFrame
+    data_copy=df.copy()
+    data=data_copy[columns]
+    data= normalize_df(data, norm_type)
 
-    # Select only the wanted columns
-    data_selected = data[cols]
+    # Plot the time series on the first subplot (axs[0])
+    axs[0].plot(data.index,data.values)
+    axs[0].set_title('Time Series')
+    axs[0].legend(columns)
 
-    # Setup figure
-    fig, axs = plt.subplots(figsize=(20, 6))
-    plt.subplots_adjust(wspace=0.2)
 
-    # Normalize the DataFrame first
-    data_selected = normalize_df(data_selected, norm_type)
+    data.plot.density(ax=axs[1])
+    axs[1].set_ylabel('Density')
+    axs[1].set_title(f'Distribution')
 
-    for i, col in enumerate(data_selected.columns):
-        # Plot line
-        col_data = data_selected[col].copy()
-        col_data.dropna(inplace=True)
-        if not col_data.empty:
-            axs.plot(col_data.index, col_data.values, label=col, color=plt.cm.tab10(i % 10))
-            axs.legend()
-            axs.set_title('Time Series')  # Title for the line plot
+    # Adjust layout and show the plot
     plt.tight_layout()
     plt.show()
+    return fig
 
 
     if correlation:
-        correlation_matrix = data_selected.dropna().corr()
+        correlation_matrix = data.dropna().corr()
         plt.figure(figsize=(10, 6))
         sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm_r', fmt=".2f", linewidths=0.5, vmin=0, vmax=1)
         plt.title('Correlation Matrix')
         plt.show()
-
+        return fig
 
 
 def normalize_df(df: pd.DataFrame,
@@ -266,19 +266,41 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
         The title of the plot.
     xlabel : str, optional
         The label for the x-axis.
-    y_domains : dict, optional
-        A dictionary where keys are integers representing the y-axis index and values are lists of two floats representing the domain ( how much space each plot uses) of the y-axis.
-        If None, default equidistant domains will be used based on the number of groups.
     date_focus : str, optional
         The initial focus point of the date selector buttons. Format: 'YYYY-MM-DD'.
+
+    RETURN
+    ------
+    fig : plotly.graph_objs.Figure
+    """
+def plot_columns_interactive(df, column_groups: dict, title: str | None = None, 
+                             xlabel: str | None = 'Date', 
+                             y_domains: dict | None = None)-> go.Figure: 
+    """
+    Plot columns of a DataFrame in interactive plots with multiple y-axes using Plotly.
+
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        The input DataFrame.
+    column_groups : dict
+        A dictionary where keys are group names and values are lists of column names to be plotted together.
+    title : str, optional
+        The title of the plot.
+    xlabel : str, optional
+        The label for the x-axis.
+    date_focus : str, optional
+        The initial focus point of the date selector buttons. Format: 'YYYY-MM-DD'.
+
+    RETURN
+    ------
+    fig : plotly.graph_objs.Figure
     """
     fig = go.Figure()
-
-    # Calculate default equidistant y-axis domains if not provided
-    num_groups = len(column_groups)
-    if y_domains is None:
-        y_domains = {i: [i / num_groups, (i + 1) / num_groups] for i in range(num_groups)}
     
+    num_groups = len(column_groups)
+    y_domains = {i: [i / num_groups, (i + 1) / num_groups] for i in range(num_groups)}
+
     # Add traces for each column group with separate y-axes
     for i, (group_name, columns) in enumerate(column_groups.items(), start=1):
         y_axis = f'y{i}'
@@ -340,7 +362,7 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
 
     # Add break up times shapes if necessary
     break_up_times = pd.read_csv('https://raw.githubusercontent.com/iceclassic/sandbox/main/Data/BreakUpTimes.csv')
-    break_up_times['timestamp'] = pd.to_datetime(break_up_times[['Year', 'Month', 'Day']])
+    break_up_times['timestamp'] = pd.to_datetime(break_up_times[['Year', 'Month', 'Day', 'Hour', 'Minute']])
     break_up_times.set_index('timestamp', inplace=True)
     shapes = []
     for date in break_up_times.index:
@@ -349,8 +371,17 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
         shapes.append(shape)
 
     fig.update_layout(shapes=shapes)
-
-    fig.show()
+    # dumm line to add to legend
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],  
+        mode='lines',
+        line=dict(color='red', width=0.6, dash='dot'),
+        name='Break Up Times',  
+        hoverinfo='none',  \
+        showlegend=True     
+    ))
+    #fig.show()
+    return fig
 
 
 def seasonal_trends(df, columns_to_plot=None, k=1, plot_mean_std=False, historicalVariation=False,
@@ -728,7 +759,7 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
         #gdf_temp = gpd.read_file(file, rows=1)  # Just read the first row to initialize and check length without laoding the whole file
         #gdf_basin_len = gpd.read_file(file).shape[0] # too slow withouf using external libries
 
-        warnings.warn(f'Performance warning: Printing wathershed basin at this level of detail could be slow', UserWarning)
+        warnings.warn(f'Performance warning: Ploting basin at this level of detail could be slow', UserWarning)
         
         confirmation = input("Do you want to continue? (yes/no): ").strip().lower()
         if confirmation != 'yes':
@@ -803,26 +834,40 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
         opacity=0.2,
         hover_name=gdf_basin_lev['HYBAS_ID'],
     )
+    fig.update_layout(coloraxis_showscale=False)
+  
+ 
+    fig.update_traces(
+    hovertemplate='<b>HydroBasin ID</b>: %{customdata}<extra></extra>',  # Custom hover text
+    customdata=gdf_basin_lev['HYBAS_ID']  # Assign the data for hover text
+)
+ 
+    # ##########################################################33
+    # gdf_rivers = gpd.read_file('../../data/shape_files/river_simplified_file.shp')
+    # filtered_rivers = gdf_rivers[gdf_rivers['ORD_FLOW'] < 4]
+    # print(len(filtered_rivers))
+    # # Load the river shapefile using GeoPandas
+ 
 
-    # file_river='../../data/shape_files/HydroRIVERS_v10_ar.shp'
-    # gdf_basin_riv = gpd.read_file(file_river)   
-    # gdf_basin_riv.info()
-    # fig = px.choropleth_mapbox(
-    #     gdf_basin_riv,
-    #     geojson=gdf_basin_riv.geometry,
-    #     locations=gdf_basin_riv.index,
-    #     color=gdf_basin_riv['ORD_FLOW'],
-    #     center={"lat": nenana_lat, "lon": nenana_lon},
-    #     opacity=0.2,
-    #     hover_name=gdf_basin_riv['HYRIV_ID'],
-    # )
- 
- 
-    # fig.update_traces(
-    # hovertemplate='<b>HYRIV_ID</b>: %{customdata}<extra></extra>',  # Custom hover text
-    # customdata=gdf_basin_riv['HYRIV_ID']  # Assign the data for hover text
-# )
- 
+    # river_coords = []
+    # for geom in filtered_rivers.geometry:
+    #     if geom.geom_type == 'LineString':
+    #         river_coords.append(np.array(geom.coords))
+    #     elif geom.geom_type == 'MultiLineString':
+    #         for line in geom:
+    #             river_coords.append(np.array(line.coords))
+
+    # # Plot each river line on the map without adding to the legend
+    # for coords in river_coords:
+    #     latitudes, longitudes = coords[:, 1], coords[:, 0]  # Split into lat/lon
+    #     fig.add_trace(go.Scattermapbox(
+    #         lat=latitudes,
+    #         lon=longitudes,
+    #         mode='lines',
+    #         line=dict(width=2, color='blue'),
+    #         showlegend=False  # Do not show in legend
+    #     ))
+
     fig.add_trace(go.Scattermapbox(
         lat=[nenana_lat], lon=[nenana_lon],
         mode='markers',
@@ -891,7 +936,6 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
         text="TEMIS & NERC-EDS",
         hoverinfo='text'))
 
-    print(len(gdf_basin_lev))
 
     visibility_list_all=[True,True,True,True,True,True,True,True,True]
     visibility_list_weathers_stations=[False,True,True,True,False,True,True,True,False]
@@ -926,5 +970,5 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
     click_trace.on_click(click_callback)
 
     # Show interactive plot
-    #fig.show()
-    fig.write_html('interactive_map.html')
+    fig.show()
+    #fig.write_html('interactive_map.html')
