@@ -362,60 +362,113 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
 
 
 
-def plot_seasonal(df, columns_to_plot=None, k=1, plot_mean_std=False,
-                  multiyear=None, plot_together=False, 
-                  xaxis='Days since start of year', xaxis_name=None, xlim=None,col_cmap='Set1',years_cmap='viridis',scatter_alpha=0.1,std_alpha=0.3,ylim=None):
+def plot_contents(  
+    df: pd.DataFrame,
+    columns_to_plot: list[str] | None = None,
+    k: int = 1,
+    plot_mean_std: bool = False,
+    multiyear: list[int] | None = None,
+    plot_together: bool = False,
+    xaxis: str = 'Days since start of year',
+    xaxis_name: str | None = None,
+    xlim: list[float] | None = None,
+    col_cmap: str = 'Set1',
+    years_cmap: str = 'viridis',
+    scatter_alpha: float = 0.1,
+    std_alpha: float = 0.3,
+    ylim: list[float] | None = None,
+    years_line_width: int = 4,
+):
     """
-    Plot the yearly distribution of temperature data for specified columns.
+    Plots the data for the specified columns.
 
-    Parameters:
-    df (DataFrame): The input DataFrame containing temperature data with a datetime index.
-    columns_to_plot (list, optional): List of column names to plot. 
-                                      If None, plot all columns except xaxis column.
-    k (int, optional): Number of standard deviations to plot around the average.
-    plot_mean_std (str, optional): Whether to plot the mean and standard deviation. Default is True. if only, the scatter is not plotted
-    multiyear (list or None, optional): The list of years to consider for filtering the data. 
-                                        If None, all years are considered. Default is None.
+    Parameters
+    ----------
+    df (DataFrame): The input DataFrame with a datetime index.
+
+    columns_to_plot (list, optional): List of column names to plot. If None, plot all columns except xaxis column.
+
     plot_together (bool, optional): If True, plot all specified columns together on a single plot. Default is False.
-    xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".
-    xlim (list, optional): Limit to the x-axis when plotting.
-    seq_map (str, optional): Sequential colormap to use for plotting different columns (matplotlib cmaps). Default is 'Set1'.
-    year_map (str, optional): Sequential colormap to use for plotting different years (matplotlib cmaps). Default is 'viridis'.
+
+    multiyear (list or None, optional): The list of years to consider for filtering the data. Default is None.If None, all years are considered.
+
+    plot_mean_std (str, optional): Whether to plot the mean and standard deviation. Default is True. if = 'only', the scatter points are not plotted
+
+    k (int, optional): Number of standard deviations to plot around the average. 
+
+    xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".If xaxis='index', the index of the df is used ( the index should be a datetime object) 
+    
+    xlim (list, optional): Limits to the x-axis when plotting.If xaxis='index', the format is ['YYYY/MM/DD', 'YYYY/MM/DD'].
+
+    seq_map (str, optional): Sequential colormap to use for plotting different columns ( name of matplotlib cmaps). Default is 'Set1'.
+
+    year_map (str, optional): Sequential colormap to use for plotting different years (name of matplotlib cmaps). Default is 'viridis'.
+
     scatter_alpha (float, optional): Alpha value for the scatter plot. Default is 0.01.
+
     std_alpha (float, optional): Alpha value for the  fill area in the standard deviation plot. Default is 0.3.
+
     ylim (list, optional): Limit to the y-axis when plotting. Each element is list with the limits for each column.
+    
+    years_line_width (int, optional): Line width for the plot of a specific year. Default is 5.
+
     Returns:
-    None
+    fig(s) : plotly.graph_objs.Figure
     """
-    seq_map = plt.get_cmap(col_cmap)
-    colors = seq_map(np.linspace(0,1, len(columns_to_plot))) 
+
+    # basic functionally
     if columns_to_plot is None:
         columns_to_plot = [col for col in df.columns if col != xaxis]
     if multiyear is None:
         compare_years_to_baseline = False
     else:
         compare_years_to_baseline =True
+
     if xaxis_name is None:
         xaxis_name = xaxis
     if plot_together:
         fig, ax = plt.subplots(figsize=(20, 5))
-    
+
     else:
         num_plots = len(columns_to_plot)
         fig, ax = plt.subplots(num_plots, 1, figsize=(20, 5 * num_plots))
         if num_plots == 1:
             ax = [ax]  # Make ax iterable
 
+
+    # colors
+    seq_map = plt.get_cmap(col_cmap)
+    colors = seq_map(np.linspace(0,1, len(columns_to_plot))) 
     if compare_years_to_baseline:
         cmap = plt.get_cmap(years_cmap)
         norm = plt.Normalize(min(multiyear), max(multiyear))
+    if compare_years_to_baseline:
+        if len(multiyear) == 1:
+           # single_year = multiyear[0]
+            single_color = plt.get_cmap(years_cmap)(0.5)  
+            cmap = plt.cm.colors.ListedColormap([single_color])  
+            norm = plt.Normalize(0, 1) 
+        else:
+            cmap = plt.get_cmap(years_cmap)
+            norm = plt.Normalize(min(multiyear), max(multiyear))
+        
+    
 
+    # actually plotting
     for i, col in enumerate(columns_to_plot):
-        df_nonan = df[[col, xaxis]].dropna()
-        df_nonan['Year'] = df_nonan.index.year
+        if xaxis == "index":
+            df_nonan = df[[col]].dropna()
+            df_nonan['Year'] = df_nonan.index.year
+            df_nonan['xaxis'] = df_nonan.index  # Use the index as the x-axis
+            xlim = [pd.to_datetime(limit, format='%Y/%m/%d') for limit in xlim]
+            xaxis_name = 'Date'
+        else:
+            df_nonan = df[[col, xaxis]].dropna()
+            df_nonan['Year'] = df_nonan.index.year
+            df_nonan['xaxis'] = df_nonan[xaxis] 
 
-        average = df_nonan.groupby(xaxis)[col].mean()
-        std = df_nonan.groupby(xaxis)[col].std()
+        average = df_nonan.groupby('xaxis')[col].mean()
+        std = df_nonan.groupby('xaxis')[col].std()
 
         if plot_together:
             color = colors[i]  # Use a unique color for each column
@@ -423,50 +476,53 @@ def plot_seasonal(df, columns_to_plot=None, k=1, plot_mean_std=False,
                 for year in multiyear:
                     if year in df_nonan['Year'].unique():
                         year_data = df_nonan[df_nonan['Year'] == year]
-                        year_data = year_data.sort_values(by=xaxis)
-                        ax.plot(year_data[xaxis], year_data[col], label=f'{col} {year}', color=cmap(norm(year)))
+                        year_data = year_data.sort_values(by='xaxis')
+                        ax.plot(year_data['xaxis'], year_data[col], label=f'{col} {year}', color=cmap(norm(year)),linewidth=years_line_width)
                     else:
                         print(f"No {col} data available for year {year}")
 
             if plot_mean_std:
-                ax.plot(average.index, average, color=color, label=f'mean {col} ±{k} std', alpha=1,linewidth=3)  # Mean line with full opacity
-                ax.fill_between(average.index, average + k * std, average - k * std, color=color, alpha=std_alpha)  #
-            if plot_mean_std !='only':
-                ax.scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=color,alpha=scatter_alpha)
+                ax.plot(average.index, average, color=color, label=f'mean {col} ±{k} std', alpha=1, linewidth=3)  # Mean line with full opacity
+                ax.fill_between(average.index, average + k * std, average - k * std, color=color, alpha=std_alpha)  
+            if plot_mean_std != 'only':
+                ax.scatter(df_nonan['xaxis'], df_nonan[col], marker='.', label=col, color=color, alpha=scatter_alpha)
             ax.set_xlabel(f'{xaxis_name}')
         else:
-            # Individual plots for each column   label=f'{col} {year}'
+            # Individual plots for each column
             if compare_years_to_baseline:
                 for year in multiyear:
                     if year in df_nonan['Year'].unique():
                         year_data = df_nonan[df_nonan['Year'] == year]
-                        year_data = year_data.sort_values(by=xaxis)
-                        ax[i].plot(year_data[xaxis], year_data[col], color=cmap(norm(year)))
+                        year_data = year_data.sort_values(by='xaxis')
+                        ax[i].plot(year_data['xaxis'], year_data[col], color=cmap(norm(year)),linewidth=years_line_width)
                     else:
                         print(f"No {col} data available for year {year}")
         
             if plot_mean_std:
-                ax[i].plot(average.index, average, color=colors[i], label=f'mean ±{k} std', alpha=1,linewidth=3)  
-                ax[i].fill_between(average.index, average + k * std, average - k * std, color=colors[i], alpha=std_alpha)   
-            if plot_mean_std !='only':
-                ax[i].scatter(df_nonan[xaxis], df_nonan[col], marker='.', label=col, color=colors[i],alpha=scatter_alpha)
+                ax[i].plot(average.index, average, color=colors[i], label=f'mean  {col} ±{k} std', alpha=1, linewidth=3)  
+                ax[i].fill_between(average.index, average + k * std, average - k * std, color=colors[i], alpha=std_alpha)  
+            if plot_mean_std != 'only':
+                ax[i].scatter(df_nonan['xaxis'], df_nonan[col], marker='.', label=col, color=colors[i], alpha=scatter_alpha)
             ax[i].set_ylabel(f'{col}')
             ax[i].set_title(f'{col}')
             ax[i].set_xlabel(f'{xaxis_name}')
             ax[i].set_xlim(xlim)
             ax[i].set_ylim(ylim[i] if ylim else None)
 
-        if compare_years_to_baseline: 
+        if compare_years_to_baseline:
+                  #
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
             sm.set_array([])
             cbar = fig.colorbar(sm, ax=ax if plot_together else ax[i])
-            cbar.set_label('Year')
-
+            if len(multiyear) == 1:
+                single_year = multiyear[0]
+                cbar.set_label('Year: {}'.format(single_year)) 
+            else:
+                  cbar.set_label('Year')
         if not plot_together:
             ax[i].legend()
-    
-    if plot_together:
-        ax.legend()
+
+   
 
     plt.tight_layout()
     plt.show()
