@@ -439,9 +439,8 @@ def plot_contents(
     # colors
     seq_map = plt.get_cmap(col_cmap)
     colors = seq_map(np.linspace(0,1, len(columns_to_plot))) 
-    if compare_years_to_baseline:
-        cmap = plt.get_cmap(years_cmap)
-        norm = plt.Normalize(min(multiyear), max(multiyear))
+
+
     if compare_years_to_baseline:
         if len(multiyear) == 1:
            # single_year = multiyear[0]
