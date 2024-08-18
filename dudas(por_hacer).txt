@@ -1,0 +1,51 @@
+iceclassic
+Por hacer, dudas varias y cosas que arreglar
+______________________________________________
+
+Repositories
+-	mude 
+o	Teachbooks
+______________________________________________
+Part 1: Exploring the data and plotting stuff
+______________________________________________
+•	Fix embed video in intro
+•	Mention FAIR Data practices?
+•	Upload gage heigh data
+•	Interactive geo map
+o	Fix loading time / resolution of river
+o	Add isoclines layer?
+o	Embed HTML or run function that created the plot in the notebook?
+o	Explain spline math?
+o	Explain welch periodogram, windows, filters? ( could link to course later in the Msc where they are explained/ or just the MUDE textbook)
+______________________________________________
+Part 2:  Simple models
+______________________________________________
+o	Documentation for classes and method ( not 100 % consistent, also doc @proporerties better)
+	Build wth sphinx and host in read_the_docs?
+	I know it can be hostes in gh-pages but would need to create action to uptated (never done this before)
+o	Collection of functions to explore data vs  class (give name to submodule ( explore _ice_data?)
+o	BMI 'wrapper' ( create once the basic oop model is at least in contents/structure correct
+
+______________________________________________
+Data files
+______________________________________________
+o	where do we put file with the compiled df and the individual df/files?
+o	A test PyPi package was uploaded to the test index
+	 \https://test.pypi.org/project/iceclassic/  
+	Is there any organization group in PyPI to manage access? 
+	If no,  see how to set up multiple API token to manage updating/upload 
+______________________________________________ 
+MISC
+______________________________________________
+-	proper testing? Not really 
+-	Remember to get list of install packages from my venv to put in requirement.txt
+o	License, readme and description of PyPi => same as the ones set-up in github repo 
+	.toml
+		could not get dynamic version tags to work, static for the moment
+		dependencies field(smth to do with 'poetry')
+______________________________________________ 
+MUDE Q3_v2 ?
+______________________________________________ 
+How do we set up repos for collaboration of student ? Muttiple options, discus with prof
+Make readme more accesible to people not related to MUDE 
+
