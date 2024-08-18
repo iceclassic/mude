@@ -5,6 +5,8 @@ import warnings
 import pandas as pd
 from scipy.signal import welch,find_peaks, butter, lfilter, filtfilt
 from scipy.fft import fft, fftfreq
+from datetime import time ,datetime,timedelta
+from scipy import stats
 import plotly.graph_objects as go
 import requests
 import seaborn as sns
@@ -22,7 +24,7 @@ def explore_contents(data: pd.DataFrame,
                                   'Sparsity':True},
                     **kwargs) -> plt.figure:
     """
-    Function that print a summary of th dataframe and plots the content/distribution of each column
+    Function that print a summary of the dataframe and plots the content/distribution of each column
     
      Parameters
     ----------
@@ -209,7 +211,7 @@ def filter_df(df,start_date: str | None = None,
     Parameters:
     -----------
     df : pandas.DataFrame
-        The input DataFrame to be filtered and converted to numpy.
+        The input DataFrame to be filtered
     start_date : str
         The initial date for filtering the DataFrame. Format: 'MM/DD'.
    end_date : str
@@ -359,8 +361,6 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
     ))
     #fig.show()
     return fig
-
-
 
 def plot_contents(  
     df: pd.DataFrame,
@@ -526,11 +526,8 @@ def plot_contents(
     plt.tight_layout()
     plt.show()
    
-
-
-
 def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_filter=False, max_allowed_freq=None,
-                         filter_order=4, find_peaks_kwargs=None):
+                         filter_order=4, find_peaks_kwargs=None,detrend_method='Linear'):
     """
     Compute and plot the Power Spectral Density (PSD) for the specified columns in the DataFrame.
     If no columns are specified, compute and plot the PSD for all columns.
@@ -581,7 +578,7 @@ def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_f
                 valid_data = filtfilt(b, a, valid_data)
             
             # Compute the PSD using a sampling frequency of 1 day (fs = 1)
-            f, Pxx = welch(valid_data, fs=1.0, nperseg=nperseg if nperseg else len(valid_data)//2)
+            f, Pxx = welch(valid_data, fs=1.0, nperseg=nperseg if nperseg else len(valid_data)//2,detrend=detrend_method)
             
             # Filter out frequencies higher than the Nyquist frequency
             valid_indices = f <= nyquist_freq
@@ -1038,3 +1035,340 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
     # Show interactive plot
     fig.show()
     #fig.write_html('interactive_map.html')
+
+
+import numpy as np
+import pandas as pd
+from datetime import time ,datetime,timedelta
+from scipy import stats
+
+def decimal_time(t, direction='to_decimal'):
+    """ Convert time object to decimal and decimal to time object depending on the direction given
+
+    Arguments:
+        t : datetime object if direction is 'to_decimal'
+            float if direction is 'to_hexadecimal'
+    Returns:
+        float if direction is 'to_decimal'
+        datetime object if direction is 'to_hexadecimal
+    """
+
+    if direction =='to_decimal':
+        return t.hour+t.minute/60
+    elif direction=='to_hexadecimal':
+        hours=int(t)
+        minutes=int((t-hours)*60)
+        return time(hours,minutes)
+    else:
+        raise ValueError("Invalid direction, choose 'to_decimal'or 'to_hexadecimal'")
+    
+
+class IceModel(object):
+
+    """
+    Simple model that fits trend to historic data to extrapolate future break up date.
+
+    Only considers previous break up dates. 
+
+
+    The model compute the date and day separately
+
+    METHODS:
+        Polifit: Polinomic fit
+        Distribtution: Fits number of distributions
+    """
+
+    def __init__(self,df):
+        """Initializing object with DataFrame with break up dates.
+        Args:
+        df(_pandas DataFrame_): Specific format and column names are hard coded based on the file BreakUpTime.csv 
+        """
+        self.df=df.copy()
+        self._predicted_day_of_break_up=None  # the object is initialize as having no prediction
+        self._predicted_time_of_break_up=None
+
+
+# Time of break up
+    @property
+    def date_time(self):
+        return  pd.to_datetime(self.df[['Year', 'Month', 'Day', 'Hour', 'Minute']])
+    
+    @property
+    def time(self):
+        return self.date_time.dt.time
+    @property
+    def decimal_time(self):
+        return self.time.apply(lambda t: decimal_time(t,direction='to_decimal'))
+   
+    @property
+    def _fit_time(self):
+        return self._fit_time
+    @_fit_time.setter
+    def _fit_time(self,value):   # revisar con test
+        self._fit_time=value
+# day of break up
+    @property
+    def day_of_year(self):
+        return self.date_time.dt.dayofyear.tolist()
+   
+    @property
+    def year(self):
+        return self.date_time.dt.year
+   
+    @property
+    def fit_day_of_year(self):
+        return self._fit_day_of_year
+    @fit_day_of_year.setter
+    def fit_day_of_year(self,value):
+        self._fit_day_of_year=value
+   
+    @property
+    def predicted_day_of_break_up(self,year=None):
+        if self.predicted_day_of_break_up is None:
+            raise ValueError(" Predicton of day of break up has not been made")
+        return self.get_predicted_day(year)
+    @predicted_day_of_break_up.setter
+    def predicted_day_of_break_up(self,value):
+        self._predicted_day_of_break_up=value
+    
+    @property
+    def predicted_time_of_break_up(self):
+        if self.predicted_time_of_break_up is None:
+            raise ValueError(" Predicton of time of break up has not been made")
+        return self.get_predicted_time
+    @predicted_time_of_break_up.setter
+    def predicted_dtime_of_break_up(self,value):
+        self._predicted_time_of_break_up=value
+   
+    @property
+    def prediction(self):
+        if self._prediction is None:
+            raise ValueError(" Predicton of  date and time of break up has not been made")
+        return self.get_prediction
+    @prediction.setter
+    def prediction(self,value):
+        self._prediction=value
+
+
+   # General stuff 
+   
+       
+    # methods
+    def polyfit(self,x_property,y_property,degree=1,norm_order=2,print_eq=True):
+        """ Fit polynomial function to properties of object
+
+        Args: 
+            x_property : name of property
+            y_property : name of property
+            degree (_int_) : degree of polynomial
+            norm (_int_) : degree of norm used to compute residuals, Default=2 
+            print_eq (_bool_) : determines if the equation of the fitted polynomial is printed
+
+        Prints:
+            Coefficient of polynomial fit
+        Returns:
+            dict : dictionary with fitted polynomial, name of the variables use for the fit and goodness of fit metrics
+        """
+
+
+        x=getattr(self,x_property)
+        if y_property =='time':  # we want to use decimal time for the fit
+            y_property='decimal_time'
+        y=getattr(self,y_property)
+
+        #print(x,y)
+
+        coefs=np.polyfit(x,y,degree)
+
+        
+        polynomial=np.poly1d(coefs)
+        
+        if print_eq:
+            print(polynomial)
+            
+        # Godness of fit
+        y_predict=polynomial(x)
+        residuals=y-y_predict
+        norm=np.linalg.norm(residuals,norm_order)  
+
+        # this metrics are not generilzed for higher order norms, they simply are the traditional metrics
+        ss_res=np.sum(residuals**2)
+        ss_tot=np.sum((y-np.mean(y))**2)
+
+        r2=1-(ss_res/ss_tot)
+
+        rmse=np.sqrt(np.mean((y-y_predict)**2))
+        nrmse=rmse/(np.max(y)-np.min(y))
+
+        n=len(y)  # number of points
+        k=degree # how many coef are we estimating
+        R2=1-((1-r2)*(n-1))/(n-k-1)
+        
+        gofs={f'{norm_order:}th norm':round(norm,4),'r2':round(r2,4),'R2':round(R2,4),'RMSE':round(rmse,4),'normalized RMSE':round(nrmse,4)}
+
+        setattr(self,'fit_'+str(y_property),{'Poly fit coefficients':polynomial,'(x,y)=':[x_property,y_property],'gofs metrics':gofs})
+        return {'Poly fit coefficients':polynomial,'(x,y)=':[x_property,y_property],'gofs metrics':gofs}
+    
+    
+    
+
+    def predict(self, variable: str, new_x) -> dict:
+        """
+        Uses the fit associated with property x to predict y based on new value of x.
+
+        Args:
+            variable (str): Name of the property to check (e.g., 'decimal_time' for polynomial fit, etc.)
+            new_x (float or int): Value used to predict y.
+        
+        Returns:
+            dict: A dictionary with information about the prediction:
+                - (x,y): Tuple of the x and y properties used for fitting.
+                - x_hat: The new x value used for prediction.
+                - y_hat: The predicted y value.
+                - confidence_interval: The confidence interval for the prediction (only for distributions).
+        """
+
+        if not self.check_property(variable):
+            raise AttributeError(f"Variable '{variable}' is not part of the predicted variables")
+        
+        fit = getattr(self, 'fit_' + str(variable))
+    
+        if 'Poly fit coefficients' in fit:
+            # Polynomial fit
+            fit_coefs = fit['Poly fit coefficients']
+            predicted_y = fit_coefs(new_x)
+            return {
+                '(x,y)': fit['(x,y)='],
+                'x_hat': new_x,
+                'y_hat': round(predicted_y, 4)
+            }
+        
+        elif 'Fitted Distribution' in fit:
+            # Distribution fit
+            distribution = fit['Fitted Distribution']
+            params = fit['Parameters']
+            dist = getattr(stats, distribution)
+
+            # Compute the predicted value (expected value of distribution)
+            predicted_y = dist(*params).mean()
+
+            # Confidence interval
+            if distribution == 'norm':
+                ci =  1.96* dist(*params).std() 
+                lower_bound = predicted_y - ci
+                upper_bound = predicted_y + ci
+                confidence_interval = (round(lower_bound, 4), round(upper_bound, 4))
+            else:
+                confidence_interval = 'N/A'  # finish this
+
+            return {
+                '(x,y)': fit['(x,y)='],
+                'x_hat': new_x,
+                'y_hat': round(predicted_y, 4),
+                'confidence_interval': confidence_interval
+            }
+        
+        else:
+            raise AttributeError(f"No fit found for variable '{variable}'")
+    
+    
+    def check_property(self,prop_name):
+        """
+        simple method that check if a fit corresponding to that variable exists
+        """
+        if not hasattr(self,prop_name):
+            raise AttributeError(f'variable "{prop_name}" not part of the model')
+        else: 
+            return True
+        
+    def get_prediction(self,x_vars):
+        """
+         Call tje function to predicted date (day of year) and time. The prediction is based on the fits saved in the corresponding attributes
+
+         The predicted date and time could have been set by the .get_predicted...  or assigned manually as they are properties of the class
+        Args:
+             xvars(_list_):  list with x variable assocaite ieith with date and time.
+        """
+    
+            # we are re-getting  the value just to make sure they correspond to the lattest assigned values
+        #DATE
+        x_fit_date=x_vars[0]
+        day=self.predict('day_of_year', x_fit_date)
+        date=datetime(x_fit_date,1,1)+timedelta(days=int(day['y_hat'])-1)
+        
+        #TIME
+        x_fit_time=x_vars[1]
+        time_decimal=self.predict('decimal_time',x_fit_time)['y_hat']
+        time=decimal_time(self.predict('decimal_time',x_fit_time)['y_hat'],direction='to_hexadecimal')
+        #Combine
+        self._prediction=datetime.combine(date,time)
+        print(self._prediction)
+
+    def dist_fit(self, x_property: str, y_property: str, distribution: str = 'norm', print_eq: bool = True,ci=1.96) -> dict:
+        """ Fit a distribution to properties of the object
+
+        Args:
+            x_property (str): Name of the x property (not used in this implementation but kept for consistency)
+            y_property (str): Name of the y property
+            distribution (str): Name of the distribution to fit (from scipy.stats). Default is 'norm'.
+            print_eq (bool): Determines if the equation of the fitted distribution is printed. Default is True.
+            ci (float): Confidence interval for the prediction. Default is 1.96 (95% CI). generalize this for other distributions
+
+        Prints:
+            Parameters of the fitted distribution and goodness-of-fit metrics.
+
+        Returns:
+            dict: Dictionary with fitted distribution, names of the variables used for the fit, and goodness-of-fit metrics.
+        """
+
+        
+        if not hasattr(self, x_property):
+            print(f"Property '{x_property}' not found .")
+            return {}
+
+        if y_property == 'time':  # Convert 'time' to 'decimal_time' if needed
+            y_property = 'decimal_time'
+
+        if not hasattr(self, y_property):
+            print(f"Property '{y_property}' not found in the object.")
+            return {}
+
+        x = getattr(self, x_property)
+        y = getattr(self, y_property)
+
+
+        # Check if the distribution is valid (could take out as itis mention in description)
+        if not hasattr(stats, distribution):
+            print(f"Distribution '{distribution}' not found in scipy.stats.")
+            return {}
+
+        dist = getattr(stats, distribution)
+        
+        # Fit the distribution
+        params = dist.fit(y)
+        fitted_dist = dist(*params)
+
+        # Goodness-of-fit metrics
+        ks_stat, ks_p_value = stats.kstest(y, fitted_dist.cdf)
+        
+        gofs = {
+            'KS Statistic': round(ks_stat, 4),
+            'KS p-value': round(ks_p_value, 4),
+        }
+
+        if print_eq:
+            print(f"Distribution: {distribution}")
+            print(f"Parameters: {params}")
+
+        results = {
+            'Fitted Distribution': distribution,
+            'Parameters': np.round(params,4),
+            '(x,y)=': [x_property, y_property],
+            'Goodness-of-Fit Metrics': gofs,
+            'confidence interval':ci
+        }
+
+        setattr(self, 'fit_' + str(y_property), results)
+        return results
+        
+    
