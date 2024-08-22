@@ -527,7 +527,7 @@ def plot_contents(
     plt.show()
    
 def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_filter=False, max_allowed_freq=None,
-                         filter_order=4, find_peaks_kwargs=None,detrend_method='Linear'):
+                         filter_order=4, find_peaks_kwargs=None,detrend_method='linear'):
     """
     Compute and plot the Power Spectral Density (PSD) for the specified columns in the DataFrame.
     If no columns are specified, compute and plot the PSD for all columns.

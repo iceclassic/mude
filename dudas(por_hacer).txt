@@ -1,5 +1,6 @@
 iceclassic
-Por hacer, dudas varias y cosas que arreglar
+
+Cachos, por hacer, dudas varias y cosas que arreglar
 ______________________________________________
 
 Repositories
@@ -21,10 +22,11 @@ ______________________________________________
 Part 2:  Simple models
 ______________________________________________
 o	Documentation for classes and method ( not 100 % consistent, also doc @proporerties better)
+- Should i have plot_methods? i mean for the poly_fit and distr fit the data is stored as proeprty so we cn jsut plot(model.prop1, model.prop2)
 	Build wth sphinx and host in read_the_docs?
 	I know it can be hostes in gh-pages but would need to create action to uptated (never done this before)
 o	Collection of functions to explore data vs  class (give name to submodule ( explore _ice_data?)
-o	BMI 'wrapper' ( create once the basic oop model is at least in contents/structure correct
+o	BMI 'wrapper' ( create once the basic oop model is at least correct  contents/structure wise
 
 ______________________________________________
 Data files
@@ -43,7 +45,7 @@ o	License, readme and description of PyPi => same as the ones set-up in github r
 	.toml
 		could not get dynamic version tags to work, static for the moment
 		dependencies field(smth to do with 'poetry')
-______________________________________________ 
+_____________________________________________ 
 MUDE Q3_v2 ?
 ______________________________________________ 
 How do we set up repos for collaboration of student ? Muttiple options, discus with prof
