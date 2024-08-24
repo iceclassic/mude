@@ -1,3 +1,3 @@
-# 2. Building more complex models
+# 2. Building a model using OOP approach
 
-using all the things we have learned, lets build some more complicated models
+using all the things we have learned, lets build a model 
