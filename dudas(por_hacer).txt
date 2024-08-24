@@ -9,24 +9,30 @@ o	Teachbooks
 ______________________________________________
 Part 1: Exploring the data and plotting stuff
 ______________________________________________
-•	Fix embed video in intro
-•	Mention FAIR Data practices?
-•	Upload gage heigh data
+•	When embedding the video, the video play from the beginning even though the url has timestamp
+-	Do not like the figure showing last years'guesses make it prettier
+•	Mention FAIR Data practices? Or will be mention in MUDE book
+•	Upload to GH gage heigh datssa
 •	Interactive geo map
-o	Fix loading time / resolution of river
-o	Add isoclines layer?
-o	Embed HTML or run function that created the plot in the notebook?
+		- Fix loading time / resolution of river
+		-Add isoclines layer?
+		- Embed HTML or run function that created the plot in the notebook?
 o	Explain spline math?
 o	Explain welch periodogram, windows, filters? ( could link to course later in the Msc where they are explained/ or just the MUDE textbook)
 ______________________________________________
 Part 2:  Simple models
 ______________________________________________
 o	Documentation for classes and method ( not 100 % consistent, also doc @proporerties better)
-- Should i have plot_methods? i mean for the poly_fit and distr fit the data is stored as proeprty so we cn jsut plot(model.prop1, model.prop2)
-	Build wth sphinx and host in read_the_docs?
-	I know it can be hostes in gh-pages but would need to create action to uptated (never done this before)
-o	Collection of functions to explore data vs  class (give name to submodule ( explore _ice_data?)
-o	BMI 'wrapper' ( create once the basic oop model is at least correct  contents/structure wise
+- 	Model methods:
+	- 1D Polynomial (add multidimensional support)
+	- Single variable distribution ( add multivariate support?(prob not)
+	- 1D simple NN (can change architecture but for 1D is alway almost like linear regression) [not fully implemented]
+	- Simple KNN classification [not fully implemented]
+	- ice_growth ( only temp) [not fully implemented]
+	Build doc sphinx and host in read_the_docs?
+	I know it can be hosted in gh-pages but would need to create gh action to updated (never done this before, but seem straightforward enough)
+o	Collection of functions to explore data vs  class (give name to submodule ( explore _ice_data? same package I assume)
+o	BMI 'wrapper' ( create once the basic oop model is at least correct  contents/structure wise)
 
 ______________________________________________
 Data files
@@ -48,6 +54,8 @@ o	License, readme and description of PyPi => same as the ones set-up in github r
 _____________________________________________ 
 MUDE Q3_v2 ?
 ______________________________________________ 
-How do we set up repos for collaboration of student ? Muttiple options, discus with prof
-Make readme more accesible to people not related to MUDE 
+How do we set up repos for collaboration of student's pull requests () ? Multiple options, discus with prof
+Make readme more accessible to people not related to MUDE 
 
+
+submodule ihub

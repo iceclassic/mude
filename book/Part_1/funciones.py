@@ -24,25 +24,31 @@ def explore_contents(data: pd.DataFrame,
                                   'Sparsity':True},
                     **kwargs) -> plt.figure:
     """
-    Function that print a summary of the dataframe and plots the content/distribution of each column
+
+    Function that prints a summary of the dataframe and plots the content/distribution of each column
     
-     Parameters
+    Parameters
     ----------
-    data: Pandas DataFrame object, where the index is a datetime object 
-    colormap: Name of the matplotlib cmap to use
-    opt: Dictionary with options of different ways to explore the contents of the df
-        `Info`: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
-        `Time History`: Plots the contents of every column and the distribution of the values on it
-        `Sparsity`: Heatmap of contents, plots the sparsity of each column in time
-    **kwargs: Additional keyword arguments to be passed to the plotting functions ( standard matplotlib arguments such as color, alpha,etc)
-      Returns:
+    data: pd.DataFrame
+        DataFrames with datetime index 
+    colormap: str
+        Name of the matplotlib cmap to use in correlation matrix 
+    opt: dict
+        Dictionary with options of different ways to explore the contents of the df
+            `Info`: uses built_in methods of pandas to get column, dtype, number of entries and range of entries as basic column statistics
+            `Time History`: Plots the contents of every column and the distribution of the values on it
+            `Sparsity`: Heatmap of contents, plots the sparsity of each column in time
+    **kwargs: Additional keyword arguments to be passed to each of the timeseries plot ( standard matplotlib arguments such as color, alpha,etc)
+    
+    Returns
     ----------
-    Depending on the options selected in the dictionary , the function will return
-        if `Info`=True -> prints a summary of the dataframe using, using method `.info`
+    Depending on the options selected in the dictionary , the function will return:
 
-        elif `Time History`=True-> plot with  the content/distribution of each column, 
+        -`Info`=True -> prints a summary of the dataframe using, using method `.info`
+    
+        -`Time History`=True-> plot with  the content/distribution of each column, 
 
-        elif `Sparsity`=True -> plot with the sparsity of the data in time
+        -`Sparsity`=True -> plot with the sparsity of the data in time
     """
 
     # Make a copy of the input data
@@ -65,7 +71,7 @@ def explore_contents(data: pd.DataFrame,
                 axs[i, 0].legend()
                 axs[i, 0].set_title(str(col)+': Time Series')  # Title for the line plot
             # Plot density 
-                data[col].plot.density(ax=axs[i, 1])
+                data[col].plot.density(ax=axs[i, 1],color=plt.cm.tab10(i % 10))
                 axs[i, 1].set_xlim(left=data[col].min(), right=data[col].max())  # Set x-axis limits to column range
                 axs[i, 1].set_ylabel('Density')
                 axs[i, 1].set_title(str(col)+': Distribution')  # Title for the line plot
@@ -88,15 +94,20 @@ def compare_columns(df: pd.DataFrame,
                     **kwargs
                     ) -> plt.figure:
     """
-    Super simple function thats plot multiple columns of a DataFrame in a single plot.
+    Simple function thats plot multiple columns of a DataFrame in a single plot.
 
-     Parameters
+    Parameters
     ----------
-    df: pandas.DataFrame, where the index is a datetime object
-    columns: list of str with the columns to plot
-    colormap: Name of the matplotlib cmap to use
-    norm_type: str indicating the type of normalization, 'min_max' or 'z-norm'
-    correlation: bool indicating if the correlation matrix should be plotted
+    df: pd.DataFrame
+        Dataframe with datetime index
+    columns: list of str 
+        Names of the columns to visually  compare
+     colormap: str
+        Name of the matplotlib cmap to use in correlation matrix plot
+    norm_type: str 
+        Indicates if the values are normalized, allowable values are None, 'min_max' or 'z-norm'
+    correlation: bool 
+        Indicating if the correlation matrix should be plotted
     """
     
     fig, axs = plt.subplots(1, ncols=2, figsize=(20, 5), gridspec_kw={'width_ratios': [3, 2]})
@@ -808,17 +819,26 @@ def days_since_last_date(df, date, name=None):
     return df
 
 
-def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
+def plot_interactive_map(Pfafstetter_levels=4,plot_only_nearby_basin=True)-> px.choropleth_mapbox:
     """
-        Plot an interactive map using Plotly and Mapbox.
+        Plots an interactive map using Plotly Express
 
-        Parameters:
-        - Pfafstetter_levels (int): The Pfafstetter level for selecting basins. Should be between 0 and 12.
-        - plot_only_near_basin (bool): If True, only plot basins near the Arctic region. If False, plot all basins.
-        Returns:
-        None
+        Parameters
+        ----------
+
+        Pfafstetter_levels:  int
+            The Pfafstetter level indicated the how detailed the basin is. Should be between 0 and 12, with level 0 correposninf to continent-spanning basins 
+            and level 12 to very local basin
+
+        plot_only_nearby_basin: bool
+            If True, only plot basins near the nenana tripod. If False, plot all basins in the Arctic Region.
+
+        Returns
+        ----------
+
+        plotly.express map with  markers in nenana tripod and  weather stations, polygon outline of the coverage of satellite-measured variables, and multipolygon with the outline of the basins.
     """
-    if Pfafstetter_levels > 4 and plot_only_near_basin==False: 
+    if Pfafstetter_levels > 4 and plot_only_nearby_basin==False: 
         #gdf_temp = gpd.read_file(file, rows=1)  # Just read the first row to initialize and check length without laoding the whole file
         #gdf_basin_len = gpd.read_file(file).shape[0] # too slow withouf using external libries
 
@@ -871,7 +891,7 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_near_basin=True):
     # changing the level to higher number yield more basin, using Pfafstetter levels 1-12 source HydroBASINS
     file='../../data/shape_files/hybas_lake_ar_lev'+'{:02d}'.format(Pfafstetter_levels)+'_v1c.shp'
     gdf_basin_lev = gpd.read_file(file)
-    if plot_only_near_basin:
+    if plot_only_nearby_basin:
         if Pfafstetter_levels==1:
             gdf_basin_lev = gdf_basin_lev.iloc[[0]] # Filter the GeoDataFrame to include some basin ( its to heavy/slow if we include eveythin)
         elif Pfafstetter_levels==2:

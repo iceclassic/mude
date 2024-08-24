@@ -4,13 +4,9 @@
 
 The iceclassic book contains additional (and optional) content to the main MUDE interactive book. Throughout the book, we will tackle a single problem: the Nenana Ice Classic.
 
-In the first part, we will familiarize ourselves with the problem, find, choose, and preprocess data that might be pertinent to the problem.
+In the first part, we will use `pandas` to  familiarize ourselves with the problem, find, choose, and preprocess data that might be pertinent to the problem at hand.
 
-In the second part, we will build a few simple models to try to solve the problem at hand.
-
-Throughout the book, we will use the programming techniques you will learn during the lectures and workshops, and briefly introduce new techniques.
-
-
+In the second part, we will build a few simple models using an Object Oriented Programming (OOP) approach.
 
 ## Nenana Ice Classic
 
@@ -21,16 +17,14 @@ Originating in 1906 as a small betting pool among six friends, the first winner,
 Each year, a tripod is set up on the ice during the first weekend in March. The break-up time is determined using a unique system where the clock stops once the tripod, connected by a pulley system, has drifted 100 feet downstream.
 
 You can see last year's ice break-up [here](https://youtu.be/hNCz1C4fkqo?list=PLo0kgRXad08K-7DV00t4WNzKaaHovr2wi&t=208). For more information, visit the official Nenana Ice Classic [webpage](https://www.nenanaakiceclassic.com/).
-> fix problem with embedded video 
 ## Motivation
 
-Last year, on the last friday's assignment every MUDE group submitted a guess, the results can be seen in the next figure
+In the last friday assignment of last year's course,  every MUDE group submitted a guess, the distribution of the guesses can be seen in the next figure:
 
  ![Fig.1](../figures/Part1/2024_guesses_with_breakup.png)
 
 in average they were off by almost a week. There is a lot of room for improvement!!!
 
-> mention how to contribute, and invitation to MUDE Q3 2024-25?
 
 ## Authors
 
