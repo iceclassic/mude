@@ -105,7 +105,7 @@ def compare_columns(df: pd.DataFrame,
      colormap: str
         Name of the matplotlib cmap to use in correlation matrix plot
     norm_type: str 
-        Indicates if the values are normalized, allowable values are None, 'min_max' or 'z-norm'
+        Indicates if the values are normalized, allowable values are `None`, `min_max` or `z-norm`
     correlation: bool 
         Indicating if the correlation matrix should be plotted
     """
@@ -152,7 +152,7 @@ def normalize_df(df: pd.DataFrame,
      Parameters
     ----------
     df: DataFrame to normalize
-    norm_type: str with the type of normalization, 'min_max' or 'z-norm'
+    norm_type: str with the type of normalization, `min_max` or `z-norm`.
     
     
     return: Normalized DataFrame
@@ -182,7 +182,7 @@ def min_max_normalization(column: pd.Series) -> pd.Series:
     
      Parameters
     ----------
-    column: Column to normalize as a pandas.Series
+    column: Column to normalize
     
     return: The normalized column as a pandas.Series
     """
@@ -269,7 +269,7 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
     """
     Plot columns of a DataFrame in interactive plots with multiple y-axes using Plotly.
 
-    Parameters:
+    Parameters
     -----------
     df : pandas.DataFrame
         The input DataFrame.
@@ -282,8 +282,8 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
     date_focus : str, optional
         The initial focus point of the date selector buttons. Format: 'YYYY-MM-DD'.
 
-    RETURN
-    ------
+    Returns
+    -------
     fig : plotly.graph_objs.Figure
     """
     fig = go.Figure()
@@ -395,35 +395,54 @@ def plot_contents(
 
     Parameters
     ----------
-    df (DataFrame): The input DataFrame with a datetime index.
+    df: pd.DataFrame:
+        The input DataFrame with a datetime index.
 
-    columns_to_plot (list, optional): List of column names to plot. If None, plot all columns except xaxis column.
+    columns_to_plot: list, optional
+        List of column names to plot. If None, plot all columns except xaxis column.
 
-    plot_together (bool, optional): If True, plot all specified columns together on a single plot. Default is False.
+    plot_together: bool, optional
+        if `True`, plot all specified columns together on a single plot. Default is `False`.
 
-    multiyear (list or None, optional): The list of years to consider for filtering the data. Default is None.If None, all years are considered.
+    multiyear: list, optional
+        The list of years to consider for filtering the data. Default is None. If None, all years are considered.
 
-    plot_mean_std (str, optional): Whether to plot the mean and standard deviation. Default is True. if = 'only', the scatter points are not plotted
+    plot_mean_std: str, optional
+        Whether to plot the mean and standard deviation. Default is  True.
+            `True`, mean and standard deviation plot are plotted on top of scatter plot 
+            `'only'`, the scatter points are not plotted, 
 
-    k (int, optional): Number of standard deviations to plot around the average. 
+    k: int, optional
+        Number of standard deviations to plot around the average. Default is `k=1` 
 
-    xaxis (str, optional): Column name for x-axis. Default is "Days since start of year".If xaxis='index', the index of the df is used ( the index should be a datetime object) 
+    xaxis: str, optional
+        Column name for x-axis. Default is `xaxis="Days since start of year"`.
+        If `xaxis='index'`, the index of the df is used ( the index should be a datetime object). This essentially recovers the timeseries plot. 
     
-    xlim (list, optional): Limits to the x-axis when plotting.If xaxis='index', the format is ['YYYY/MM/DD', 'YYYY/MM/DD'].
+    xlim: list, optional
+        Limits to the x-axis when plotting. 
+        If `xaxis='index'`, the expected format is `['YYYY/MM/DD', 'YYYY/MM/DD']`.
 
-    seq_map (str, optional): Sequential colormap to use for plotting different columns ( name of matplotlib cmaps). Default is 'Set1'.
+    seq_map: str, optional
+        	Sequential colormap to use for plotting different columns (name of matplotlib cmaps). Default is 'Set1'.
 
-    year_map (str, optional): Sequential colormap to use for plotting different years (name of matplotlib cmaps). Default is 'viridis'.
+    year_map: str, optional
+        Sequential colormap to use for plotting different years (name of matplotlib cmaps). Default is 'viridis'.
 
-    scatter_alpha (float, optional): Alpha value for the scatter plot. Default is 0.01.
+    scatter_alpha: float, optional
+        Opacity (Alpha value) for the scatter plot. Default is 0.01.
 
-    std_alpha (float, optional): Alpha value for the  fill area in the standard deviation plot. Default is 0.3.
+    std_alpha: float, optional
+        Opacity (Alpha value) for the  fill area delimited by the standard deviation plot. Default is 0.3.
 
-    ylim (list, optional): Limit to the y-axis when plotting. Each element is list with the limits for each column.
+    ylim: list, optional
+        Limit of y-axis when plotting. Each element is list with the limits for each column.
     
-    years_line_width (int, optional): Line width for the plot of a specific year. Default is 5.
+    years_line_width: int, optional
+        Line width for the plot of a specific year. Default is 5.
 
     Returns:
+    ----------
     fig(s) : plotly.graph_objs.Figure
     """
 
@@ -733,18 +752,20 @@ def import_data_browser(url):
 
 def days_since_last_date(df, date, name=None):
     """
-    Calculate the number of days since the last occurrence of a given month and day or a list of dates.
+    Calculate the number of days since the last occurrence of a given date (MM/DD)  or a list of dates.
 
-    Parameters:
-    - df: DataFrame
+    Parameters
+    -----------
+    df: DataFrame
         The DataFrame containing the dates.
-    - date_or_dates: str or list of str
-        A single date in the format 'MM/DD' or a special date keyword, or a list of dates in the format 'YYYY/MM/DD'.
-    - name: str, optional
+    date_or_dates: str or list of str
+        A single date in the format `'MM/DD'`, a built-in keyword/string, or a list of dates in the format 'YYYY/MM/DD'.
+    name: str, optional
         The name of the column to add when using a single date. If None, defaults to the month_day or special date keyword.
 
-    Returns:
-    - df: DataFrame
+    Returns
+    -------
+    df: DataFrame
         The DataFrame with additional columns containing the number of days since the last occurrence of the given date(s).
     """
     df = df.copy()
@@ -1057,20 +1078,21 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_nearby_basin=True)-> px.
     #fig.write_html('interactive_map.html')
 
 
-import numpy as np
 import pandas as pd
+import numpy as np
 from datetime import time ,datetime,timedelta
 from scipy import stats
+import matplotlib.pyplot as plt
 
 def decimal_time(t, direction='to_decimal'):
     """ Convert time object to decimal and decimal to time object depending on the direction given
 
     Arguments:
-        t : datetime object if direction is 'to_decimal'
-            float if direction is 'to_hexadecimal'
+        t : datetime object if `direction is 'to_decimal'`
+            float if `direction='to_hexadecimal'`
     Returns:
         float if direction is 'to_decimal'
-        datetime object if direction is 'to_hexadecimal
+        datetime object if direction is 'to_hexadecimal'
     """
 
     if direction =='to_decimal':
@@ -1094,24 +1116,94 @@ class IceModel(object):
     The model compute the date and day separately
 
     METHODS:
-        Polifit: Polinomic fit
-        Distribtution: Fits number of distributions
+        polyfit: Polinomic fit
+        distfit: Fits distributions
+        predict: Predicts the value of a variable based on the fit/dist
+        get_prediction: Calles predict to get date and time
     """
 
-    def __init__(self,df):
-        """Initializing object with DataFrame with break up dates.
-        Args:
-        df(_pandas DataFrame_): Specific format and column names are hard coded based on the file BreakUpTime.csv 
+    def __init__(self, df_dates:pd.DataFrame, df_variables=None):
         """
-        self.df=df.copy()
-        self._predicted_day_of_break_up=None  # the object is initialize as having no prediction
-        self._predicted_time_of_break_up=None
+        Initializing object with DataFrame with break up dates.
+        
+        Arguments:
+        ----------
 
+        df_dates: pandas DataFrame
+            DataFrame with break up dates.
+        df_variables:pandas DataFrame, optional):
+            DataFrame with additional variables. Defaults to None.
+        """
+        self._df_dates = df_dates.copy()
+        self.df_variables = df_variables.copy() if df_variables is not None else pd.DataFrame()
+        self._predicted_day_of_break_up = None  
+        self._predicted_time_of_break_up = None
+        
+        # Initialize created properties tracker
+        self._created_properties = set()
 
-# Time of break up
+        # Dynamically create properties for each column in df_variables
+        if not self.df_variables.empty:
+            for column in self.df_variables.columns:
+                self._create_property(column, self.df_variables[column])
+    
+    def _create_property(self, name, data):
+        """Creates a property with a getter and setter for a given data Series or DataFrame column.
+        
+        Args:
+            name (str): Name of the property.
+            data (pandas Series): Data to be used for the property.
+        """
+        if len(data) != len(self._df_dates):
+            raise ValueError("The length of the data must match the length of df_dates.")
+        
+        private_name = '_' + name
+
+        setattr(self, private_name, data)
+        
+        def getter(self):
+            return getattr(self, private_name)
+        
+        def setter(self, value):
+            if len(value) != len(self._df_dates):
+                raise ValueError("The length of the value must match the length of df_dates.")
+            setattr(self, private_name, value)
+        
+        setattr(self.__class__, name, property(fget=getter, fset=setter))
+        self._created_properties.add(name)
+
+    def add_property(self, series, name_prop='new_property'):
+        """Adds a new property to the class based on the provided Series.
+        
+        Args:
+            series (pandas Series): Series to be added as a property.
+            name_prop (str): Name of the new property.
+        """
+        if not isinstance(series, pd.Series):
+            raise TypeError("The argument must be a pandas Series.")
+        if len(series) != len(self._df_dates):
+            raise ValueError("The length of the series must match the length of df_dates.")
+        if name_prop in self._created_properties:
+            raise ValueError(f"Property '{name_prop}' already exists.")
+        
+        self._create_property(name_prop, series)
+    
+    def get_created_properties(self):
+        """Returns a list of the properties dynamically created for the class."""
+        return list(self._created_properties)
+
+#=======================================================================================================
+# Properties and methods related to df_dates 
+#======================================================================================================
+# DF without datetime index, each column correspond to break up dates in different format
+# we can add more columns to this df but is important to understand that this df constaining one value per year
+    
+    # ------------------------------#
+    # Properties basics
+    # ------------------------------#
     @property
     def date_time(self):
-        return  pd.to_datetime(self.df[['Year', 'Month', 'Day', 'Hour', 'Minute']])
+        return  pd.to_datetime(self._df_dates[['Year', 'Month', 'Day', 'Hour', 'Minute']])
     
     @property
     def time(self):
@@ -1121,32 +1213,41 @@ class IceModel(object):
         return self.time.apply(lambda t: decimal_time(t,direction='to_decimal'))
    
     @property
-    def _fit_time(self):
-        return self._fit_time
-    @_fit_time.setter
-    def _fit_time(self,value):   # revisar con test
-        self._fit_time=value
-# day of break up
-    @property
     def day_of_year(self):
         return self.date_time.dt.dayofyear.tolist()
    
     @property
     def year(self):
         return self.date_time.dt.year
-   
+     
+    # ------------------------------#
+    # Properties associated with Fits
+    # ------------------------------#
+    @property
+    def fit_time(self):
+        return self.fit_time
+    
+    @fit_time.setter
+    def fit_time(self,value):   # revisar con test
+        self.fit_time=value
+    
     @property
     def fit_day_of_year(self):
-        return self._fit_day_of_year
+        return self.fit_day_of_year
     @fit_day_of_year.setter
     def fit_day_of_year(self,value):
-        self._fit_day_of_year=value
+        self.fit_day_of_year=value
    
+ 
+    # ------------------------------#
+   # Properties to get predicted values
+    # ------------------------------#
     @property
     def predicted_day_of_break_up(self,year=None):
         if self.predicted_day_of_break_up is None:
             raise ValueError(" Predicton of day of break up has not been made")
         return self.get_predicted_day(year)
+    
     @predicted_day_of_break_up.setter
     def predicted_day_of_break_up(self,value):
         self._predicted_day_of_break_up=value
@@ -1169,25 +1270,35 @@ class IceModel(object):
     def prediction(self,value):
         self._prediction=value
 
-
-   # General stuff 
    
-       
+     
+    # ------------------------------#       
     # methods
-    def polyfit(self,x_property,y_property,degree=1,norm_order=2,print_eq=True):
-        """ Fit polynomial function to properties of object
+    # ------------------------------#
+    def polyfit(self,x_property: str ,y_property: str,degree: int=1,norm_order: int=2,print_eq:bool=True,plot:bool=False):
+        """ 
+        Fits polynomial function to properties of object
 
-        Args: 
-            x_property : name of property
-            y_property : name of property
-            degree (_int_) : degree of polynomial
-            norm (_int_) : degree of norm used to compute residuals, Default=2 
-            print_eq (_bool_) : determines if the equation of the fitted polynomial is printed
+        The name of the property to use as 'x'  and  'y' must exist and be of the same length. The fit is saved as an attribute of the class 
 
-        Prints:
-            Coefficient of polynomial fit
-        Returns:
-            dict : dictionary with fitted polynomial, name of the variables use for the fit and goodness of fit metrics
+        Parameters
+        ---------- 
+        x_property: str
+            name of the property to use as 'x' in fit.
+        y_property : str
+             name of property to use as 'y' in fit
+        degree : int
+            degree of polynomial
+        norm: int 
+             degree of norm used to compute residuals, Default=2 
+        print_eq: bool
+            Determines if the equation of the fitted polynomial is printed
+        plot: bool
+            Determines if the plot of the data and the fitted polynomial is shown
+    
+        Returns
+        ----------
+        dict : dictionary with the fitted polynomial, name of the variables use for the fit and goodness of fit metrics. 
         """
 
 
@@ -1206,12 +1317,12 @@ class IceModel(object):
         if print_eq:
             print(polynomial)
             
-        # Godness of fit
+        # G0odness of fit
         y_predict=polynomial(x)
         residuals=y-y_predict
         norm=np.linalg.norm(residuals,norm_order)  
 
-        # this metrics are not generilzed for higher order norms, they simply are the traditional metrics
+        # these metrics are not generalized for higher order norms, they simply are the traditional metrics
         ss_res=np.sum(residuals**2)
         ss_tot=np.sum((y-np.mean(y))**2)
 
@@ -1226,26 +1337,41 @@ class IceModel(object):
         
         gofs={f'{norm_order:}th norm':round(norm,4),'r2':round(r2,4),'R2':round(R2,4),'RMSE':round(rmse,4),'normalized RMSE':round(nrmse,4)}
 
-        setattr(self,'fit_'+str(y_property),{'Poly fit coefficients':polynomial,'(x,y)=':[x_property,y_property],'gofs metrics':gofs})
-        return {'Poly fit coefficients':polynomial,'(x,y)=':[x_property,y_property],'gofs metrics':gofs}
-    
-    
-    
+        setattr(IceModel,'fit_'+str(y_property),{'Poly fit coefficients':polynomial,'(x,y)=':[x_property,y_property],'gofs metrics':gofs})
 
+        if plot:
+            plt.scatter(x, y, color='blue',alpha=0.5)
+            x_ = np.linspace(min(x), max(x), 100)
+            y_ = polynomial(x_)
+        
+            plt.plot(x_, y_, color='red', linestyle='--',linewidth=2)
+
+            plt.xlabel(x_property)
+            plt.ylabel(y_property)
+            plt.title(f'Polynomial Fit degree={degree}')
+            plt.grid(True)
+            plt.show()
+
+       # return {'Poly fit coefficients':polynomial,'(x,y)=':[x_property,y_property],'gofs metrics':gofs}
+    
     def predict(self, variable: str, new_x) -> dict:
         """
-        Uses the fit associated with property x to predict y based on new value of x.
+        Uses the polynomic fit or distribution fit  associated with the y_property to predict y based on new value of x.
 
-        Args:
-            variable (str): Name of the property to check (e.g., 'decimal_time' for polynomial fit, etc.)
-            new_x (float or int): Value used to predict y.
+        Parameters
+        ----------
+        Variable: str
+            Name of the property to check (e.g., 'decimal_time' for polynomial fit, etc.)
+        new_x: float
+            Value of x use to predict y.
         
-        Returns:
-            dict: A dictionary with information about the prediction:
-                - (x,y): Tuple of the x and y properties used for fitting.
-                - x_hat: The new x value used for prediction.
-                - y_hat: The predicted y value.
-                - confidence_interval: The confidence interval for the prediction (only for distributions).
+        Returns
+        ----------
+        dict: A dictionary with information about the prediction:
+            - (x,y): Tuple of the x and y properties used for fitting.
+            - x_hat: The new x value used for prediction.
+            - y_hat: The predicted y value.
+            - confidence_interval: The confidence interval for the prediction (only for distributions).
         """
 
         if not self.check_property(variable):
@@ -1284,13 +1410,11 @@ class IceModel(object):
             return {
                 '(x,y)': fit['(x,y)='],
                 'x_hat': new_x,
-                'y_hat': round(predicted_y, 4),
-                'confidence_interval': confidence_interval
+                'y_hat': round(predicted_y, 4)
             }
         
         else:
             raise AttributeError(f"No fit found for variable '{variable}'")
-    
     
     def check_property(self,prop_name):
         """
@@ -1301,16 +1425,30 @@ class IceModel(object):
         else: 
             return True
         
-    def get_prediction(self,x_vars):
+    def get_prediction(self,x_vars)->datetime:
         """
-         Call tje function to predicted date (day of year) and time. The prediction is based on the fits saved in the corresponding attributes
+         Calls the function to predict the date (day of year) and time of break up
+         
 
-         The predicted date and time could have been set by the .get_predicted...  or assigned manually as they are properties of the class
-        Args:
-             xvars(_list_):  list with x variable assocaite ieith with date and time.
+        Parameters
+        ----------
+        xvars: list
+            List with the x variables that will be use to predict with date and time (respectably).
+
+        Notes
+        ----------
+            The method is not generalized for other properties, it is only for date and time. For predicting other properties,
+                it is necessary to use .predict() which can receive any two existing properties.
+            A list of x_vars is required instead of a single value, as in other future complex model, the predicted date/time could correspond 
+                to a combination of variables for different years.
+
+        Returns
+        ----------
+        datetime: The predicted date and time of break up
         """
     
-            # we are re-getting  the value just to make sure they correspond to the lattest assigned values
+            # we are re-getting  the value just to make sure they correspond to the latest assigned fits
+
         #DATE
         x_fit_date=x_vars[0]
         day=self.predict('day_of_year', x_fit_date)
@@ -1318,19 +1456,29 @@ class IceModel(object):
         
         #TIME
         x_fit_time=x_vars[1]
-        time_decimal=self.predict('decimal_time',x_fit_time)['y_hat']
         time=decimal_time(self.predict('decimal_time',x_fit_time)['y_hat'],direction='to_hexadecimal')
         #Combine
         self._prediction=datetime.combine(date,time)
         print(self._prediction)
 
-    def dist_fit(self, x_property: str, y_property: str, distribution: str = 'norm', print_eq: bool = True,ci=1.96) -> dict:
+    def dist_fit(self, x_property: str, y_property: str, distribution: str = 'norm', print_eq: bool = True,ci=1.96,plot=False): 
         """ Fit a distribution to properties of the object
 
         Args:
             x_property (str): Name of the x property (not used in this implementation but kept for consistency)
             y_property (str): Name of the y property
             distribution (str): Name of the distribution to fit (from scipy.stats). Default is 'norm'.
+                                'norm' for normal distribution
+                                'expon' for exponential distribution
+                                'gamma' for gamma distribution
+                                'lognorm' for lognormal distribution
+                                'weibull_min' for Weibull distribution
+                                'weibull_max' for Frechet distribution
+                                'pareto' for Pareto distribution
+                                'genextreme' for Generalized Extreme Value distribution
+                                'gumbel_r' for Gumbel Right (minimum) distributionE
+                                ...
+            plot (bool): Determines if a histogram of the data and the fitted distribution are plotted. Default is False.   
             print_eq (bool): Determines if the equation of the fitted distribution is printed. Default is True.
             ci (float): Confidence interval for the prediction. Default is 1.96 (95% CI). generalize this for other distributions
 
@@ -1384,11 +1532,32 @@ class IceModel(object):
             'Fitted Distribution': distribution,
             'Parameters': np.round(params,4),
             '(x,y)=': [x_property, y_property],
-            'Goodness-of-Fit Metrics': gofs,
-            'confidence interval':ci
+            'Goodness-of-Fit Metrics': gofs
         }
+        if plot:
+            # Histogram of the data
+            plt.hist(y, density=True, alpha=0.6, color='g')
+
+            # Plot the PDF of the fitted distribution
+            xmin, xmax = min(y), max(y)
+            x = np.linspace(xmin, xmax, 100)
+            p = fitted_dist.pdf(x)
+            plt.plot(x, p, 'k', linewidth=2, label=f'{distribution} fit')
+
+            plt.xlabel(y_property)
+            plt.ylabel('Density')
+            plt.title(f'Histogram of {y_property} with Fitted {distribution} distribution')
+            plt.legend()
+            plt.grid(True)
+            plt.show()
 
         setattr(self, 'fit_' + str(y_property), results)
+#=======================================================================================================
+# Properties related to df_dates 
+#======================================================================================================
+   # dynamically create when the object is created
+#======================================================================================================
+#======================================================================================================
+#======================================================================================================
         return results
-        
     
