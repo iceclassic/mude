@@ -13,7 +13,7 @@ parts:
       #- file: Part_1/numerical_model.ipynb
     - file: Part_2/Part2.md
       sections:
-      - file: Part_1/ice_model(intro OOP).ipynb
+      - file: Part_2/ice_model(intro OOP).ipynb
       #- file: Part_2/Thermal_Mechanical_years.ipynb
     #   - file: Part_2/NN_NL_brute_force.ipynb
     #   - file: Part_2/Prediction_of_ice_thickness.ipynb
