@@ -391,7 +391,8 @@ def plot_contents(
     std_alpha: float = 0.3,
     ylim: list[float] | None = None,
     years_line_width: int = 4,
-    plot_break_up_dates:bool=False
+    plot_break_up_dates:bool=False,
+    normalize:str| None=None
 ):
     """
     Plots the data for the specified columns.
@@ -448,6 +449,9 @@ def plot_contents(
     plot_break_up_dates:bool
         Wether we plot scatter point associated with break up.Only if xaxis='day_of_year'. Not yet available with `plot_together=True` , 
         as it create multiple equal scatter points. It also annotated each scatter point with year
+
+    Normalize:str,optional
+        if  `plot_together=True`, normalization can be applied in order to plot them together.
     Returns:
     ----------
     fig(s) : plotly.graph_objs.Figure
