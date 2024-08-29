@@ -474,7 +474,8 @@ def plot_contents(
     
     
     df_break_up=df[df['Days until break up']==0] # we extract break up dates
-    df_break_up=df_break_up[df_break_up.index.year.isin(multiyear)]
+    if isinstance(multiyear,list):
+        df_break_up=df_break_up[df_break_up.index.year.isin(multiyear)]
 
     # colors
     if isinstance(col_cmap,str):
@@ -530,6 +531,7 @@ def plot_contents(
             if plot_mean_std != 'only':
                 ax.scatter(df_nonan['xaxis'], df_nonan[col], marker='.', label=col, color=color, alpha=scatter_alpha)
             ax.set_xlabel(f'{xaxis_name}')
+            
         else:
             # Individual plots for each column
             if compare_years_to_baseline:
@@ -575,9 +577,10 @@ def plot_contents(
                 cbar.set_label('Year: {}'.format(single_year)) 
             else:
                   cbar.set_label('Year')
-        if  plot_together or compare_years_to_baseline:
+        if  compare_years_to_baseline:
             ax[i].legend()
-
+        if  plot_together:
+            ax.legend()   
    
 
     plt.tight_layout()
