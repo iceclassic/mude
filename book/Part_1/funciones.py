@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import matplotlib.ticker as ticker
 import plotly.express as px
 import numpy as np
 import warnings
@@ -76,7 +78,7 @@ def explore_contents(data: pd.DataFrame,
                 axs[i, 1].set_ylabel('Density')
                 axs[i, 1].set_title(str(col)+': Distribution')  # Title for the line plot
         fig.tight_layout()
-        fig.show()
+        
 
     if opt['Sparsity']:
         data.index = data.index.year
@@ -389,6 +391,7 @@ def plot_contents(
     std_alpha: float = 0.3,
     ylim: list[float] | None = None,
     years_line_width: int = 4,
+    plot_break_up_dates:bool=False
 ):
     """
     Plots the data for the specified columns.
@@ -421,10 +424,11 @@ def plot_contents(
     
     xlim: list, optional
         Limits to the x-axis when plotting. 
-        If `xaxis='index'`, the expected format is `['YYYY/MM/DD', 'YYYY/MM/DD']`.
+        if `xaxis='index'`, the expected format is `['YYYY/MM/DD', 'YYYY/MM/DD']`.
 
-    seq_map: str, optional
+    col_cmap: str, optional
         	Sequential colormap to use for plotting different columns (name of matplotlib cmaps). Default is 'Set1'.
+            if a list of colors is passed with the same length as the number of column, it used that list of color.
 
     year_map: str, optional
         Sequential colormap to use for plotting different years (name of matplotlib cmaps). Default is 'viridis'.
@@ -441,6 +445,9 @@ def plot_contents(
     years_line_width: int, optional
         Line width for the plot of a specific year. Default is 5.
 
+    plot_break_up_dates:bool
+        Wether we plot scatter point associated with break up.Only if xaxis='day_of_year'. Not yet available with `plot_together=True` , 
+        as it create multiple equal scatter points. It also annotated each scatter point with year
     Returns:
     ----------
     fig(s) : plotly.graph_objs.Figure
@@ -464,10 +471,17 @@ def plot_contents(
         fig, ax = plt.subplots(num_plots, 1, figsize=(20, 5 * num_plots))
         if num_plots == 1:
             ax = [ax]  # Make ax iterable
-
+    
+    
+    df_break_up=df[df['Days until break up']==0] # we extract break up dates
+    df_break_up=df_break_up[df_break_up.index.year.isin(multiyear)]
 
     # colors
-    seq_map = plt.get_cmap(col_cmap)
+    if isinstance(col_cmap,str):
+        seq_map = plt.get_cmap(col_cmap)
+    if isinstance(col_cmap,list):
+        seq_map=mcolors.ListedColormap(col_cmap)
+
     colors = seq_map(np.linspace(0,1, len(columns_to_plot))) 
 
 
@@ -532,6 +546,18 @@ def plot_contents(
                 ax[i].fill_between(average.index, average + k * std, average - k * std, color=colors[i], alpha=std_alpha)  
             if plot_mean_std != 'only':
                 ax[i].scatter(df_nonan['xaxis'], df_nonan[col], marker='.', label=col, color=colors[i], alpha=scatter_alpha)
+            if (xaxis=='Days since start of year') and (plot_break_up_dates): 
+                #df_break_up.apply(lambda row: plt.text(row.index.dayofyear,row[col,row.name.index.year.strftime('YYYY')]))
+              
+                    
+                ax[i].scatter(df_break_up.index.dayofyear, df_break_up[col], color='red',s=100,edgecolor='black', alpha=1)
+                for dayofyear,break_up_date in zip(df_break_up.index.dayofyear,df_break_up.index):
+                    ax[i].annotate(break_up_date.strftime('%Y'),
+                                   (dayofyear,df_break_up.loc[break_up_date,col]),
+                                   textcoords='offset points',
+                                   xytext=(0,10),
+                                   ha='left',
+                                   rotation=10)            
             ax[i].set_ylabel(f'{col}')
             ax[i].set_title(f'{col}')
             ax[i].set_xlabel(f'{xaxis_name}')
@@ -543,12 +569,13 @@ def plot_contents(
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
             sm.set_array([])
             cbar = fig.colorbar(sm, ax=ax if plot_together else ax[i])
+            cbar.ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
             if len(multiyear) == 1:
                 single_year = multiyear[0]
                 cbar.set_label('Year: {}'.format(single_year)) 
             else:
                   cbar.set_label('Year')
-        if not plot_together:
+        if  plot_together or compare_years_to_baseline:
             ax[i].legend()
 
    
@@ -1089,20 +1116,20 @@ def decimal_time(t, direction='to_decimal'):
 
     Arguments:
         t : datetime object if `direction is 'to_decimal'`
-            float if `direction='to_hexadecimal'`
+            float if `direction='to_sexadecimal'`
     Returns:
         float if direction is 'to_decimal'
-        datetime object if direction is 'to_hexadecimal'
+        datetime object if direction is 'to_sexadecimal'
     """
 
     if direction =='to_decimal':
         return t.hour+t.minute/60
-    elif direction=='to_hexadecimal':
+    elif direction=='to_sexadecimal':
         hours=int(t)
         minutes=int((t-hours)*60)
         return time(hours,minutes)
     else:
-        raise ValueError("Invalid direction, choose 'to_decimal'or 'to_hexadecimal'")
+        raise ValueError("Invalid direction, choose 'to_decimal'or 'to_sexadecimal'")
     
 
 class IceModel(object):
@@ -1560,4 +1587,95 @@ class IceModel(object):
 #======================================================================================================
 #======================================================================================================
         return results
+    
+
+def plot_scatter(dates:pd.DataFrame, x_col_name:str,y_col_name:str,x_label: str=None,y_label:str=None,title:str=None):
+    """_summary_
+
+    Arguments
+    ----------
+    dates:pd.dataframe
+        Datafrmae, each row correspond to a year with charactetistic of the break_up and associated variable. Index is datetie object with years
+    x_col_name: str
+        name of the column to use as x vector
+    y_col_name: str
+        name of the column to use as y vector
+    x_label: None | str
+        optional string to label xaxis
+    ylabel: None | str
+        optional string to label yaxis
+    Title:  None | str
+        title of scatter plot
+
+    Returns
+    -------
+    plt.fig
+    """
+
+    if x_label is None:
+        x_label=x_col_name
+    if y_label is None:
+        y_label=y_col_name
+
+    x=dates[x_col_name]
+    y=dates[y_col_name]
+    plt.figure()
+    plt.scatter(x,y,color='red',s=50,edgecolor='black')
+    plt.grid()
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title,pad=20)
+    for i in range(len(dates)):
+        # print(dates.index[i])
+        #print(dates.iloc[i,x_col_name])
+        plt.annotate(dates.index[i],
+                        (dates[x_col_name].iloc[i],dates[y_col_name].iloc[i]),
+                        textcoords='offset points',
+                        xytext=(0,10),
+                        ha='left',
+                        rotation=10)
+    plt.show()     
+
+def decimal_time(t, direction='to_decimal'):
+    """ Convert time object to decimal and decimal to time object depending on the direction given
+
+    Arguments:
+        t : datetime object if `direction is 'to_decimal'`
+            float if `direction='to_hexadecimal'`
+    Returns:
+        float if direction is 'to_decimal'
+        datetime object if direction is 'to_hexadecimal'
+    """
+
+    if direction =='to_decimal':
+        return t.hour+t.minute/60
+    elif direction=='to_sexadecimal':
+        hours=int(t)
+        minutes=int((t-hours)*60)
+        return time(hours,minutes)
+    else:
+        raise ValueError("Invalid direction, choose 'to_decimal'or 'to_hexadecimal'")
+
+def decimal_day(t, direction='to_decimal'):
+    """ Convert time object to decimal and decimal to time object depending on the direction given
+
+    Arguments:
+        t : datetime object if `direction is 'to_decimal'`
+            float if `direction='to_base24'`
+    Returns:
+        float if direction is 'to_decimal'
+        datetime object if direction is 'to_base24'
+    """
+
+    if direction =='to_decimal':
+        return t.hour/24+t.minute/(24*60)
+    elif direction=='to_base24':
+        total_minutes=int(t*24*60)
+        hours=minutes//60
+        minutes=total_minutes%60
+        return time(hours,minutes)
+    else:
+        raise ValueError("Invalid direction, choose 'to_decimal'or 'to_base24'")
+    
+
     
