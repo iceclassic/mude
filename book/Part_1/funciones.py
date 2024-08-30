@@ -358,7 +358,7 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
     )
 
     # Add break up times shapes if necessary
-    break_up_times = pd.read_csv('https://raw.githubusercontent.com/iceclassic/sandbox/main/Data/BreakUpTimes.csv')
+    break_up_times = pd.read_csv('../../Data/BreakUpTimes.csv')
     break_up_times['timestamp'] = pd.to_datetime(break_up_times[['Year', 'Month', 'Day', 'Hour', 'Minute']])
     break_up_times.set_index('timestamp', inplace=True)
     shapes = []
