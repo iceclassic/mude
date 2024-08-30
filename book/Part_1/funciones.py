@@ -173,6 +173,7 @@ def normalize_df(df: pd.DataFrame,
         for column in df.columns:
             df_normalized[column] = z_score_normalization(df[column])
     else:
+        print('normalization method not implemented')
         return df
 
     return df_normalized
@@ -450,7 +451,7 @@ def plot_contents(
         Wether we plot scatter point associated with break up.Only if xaxis='day_of_year'. Not yet available with `plot_together=True` , 
         as it create multiple equal scatter points. It also annotated each scatter point with year
 
-    Normalize:str,optional
+    normalize:str,optional
         if  `plot_together=True`, normalization can be applied in order to plot them together.
     Returns:
     ----------
@@ -533,6 +534,8 @@ def plot_contents(
                 ax.plot(average.index, average, color=color, label=f'mean {col} ±{k} std', alpha=1, linewidth=3)  # Mean line with full opacity
                 ax.fill_between(average.index, average + k * std, average - k * std, color=color, alpha=std_alpha)  
             if plot_mean_std != 'only':
+                df_nonan[col]=normalize_df(df_nonan[col],normalize)s
+                print(normalize)
                 ax.scatter(df_nonan['xaxis'], df_nonan[col], marker='.', label=col, color=color, alpha=scatter_alpha)
             ax.set_xlabel(f'{xaxis_name}')
             
