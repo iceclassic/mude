@@ -145,8 +145,9 @@ def compare_columns(df: pd.DataFrame,
         return fig
 
 
-def normalize_df(df: pd.DataFrame,
-                 norm_type: str | None = None
+def normalize_df(df: pd.DataFrame | pd.Series,
+                 norm_type: str | None = None,
+                 columns:list|None=None
                  ) -> pd.DataFrame:
     """
     Normalizes the Pandas DataFrame object.
@@ -154,7 +155,7 @@ def normalize_df(df: pd.DataFrame,
      Parameters
     ----------
     df: DataFrame to normalize
-    norm_type: str with the type of normalization, `min_max` or `z-norm`.
+    norm_type: str with the type of normalization, `min_max` or `z-score`.
     
     
     return: Normalized DataFrame
@@ -165,17 +166,20 @@ def normalize_df(df: pd.DataFrame,
 
     # Make a copy of the DataFrame
     df_normalized = df.copy()
-
-    if norm_type == 'min_max':
-        for column in df.columns:
-            df_normalized[column] = min_max_normalization(df[column])
-    elif norm_type == 'z-norm':
-        for column in df.columns:
-            df_normalized[column] = z_score_normalization(df[column])
+    if isinstance(df, pd.Series):
+        if norm_type == 'min_max':
+            df_normalized= min_max_normalization(df)
+        elif norm_type == 'z-norm':
+                df_normalize = z_score_normalization(df)
     else:
-        print('normalization method not implemented')
-        return df
-
+      for col in columns:
+            if norm_type == 'min_max':
+                df_normalized[col] = min_max_normalization(df[col])
+            elif norm_type=='z-score':
+                df_normalized[col] = z_score_normalization(df[col])
+            else:
+                raise ValueError('normalization method not implemented')
+   
     return df_normalized
 
 
@@ -451,8 +455,9 @@ def plot_contents(
         Wether we plot scatter point associated with break up.Only if xaxis='day_of_year'. Not yet available with `plot_together=True` , 
         as it create multiple equal scatter points. It also annotated each scatter point with year
 
-    normalize:str,optional
+    normalize: str,optional
         if  `plot_together=True`, normalization can be applied in order to plot them together.
+        The normalization can be `min_max` or `z-score`. Default is None.
     Returns:
     ----------
     fig(s) : plotly.graph_objs.Figure
@@ -500,7 +505,8 @@ def plot_contents(
         else:
             cmap = plt.get_cmap(years_cmap)
             norm = plt.Normalize(min(multiyear), max(multiyear))
-        
+    if isinstance(normalize,str):
+        df=normalize_df(df,normalize,columns=columns_to_plot)
     
 
     # actually plotting
@@ -529,13 +535,11 @@ def plot_contents(
                         ax.plot(year_data['xaxis'], year_data[col], label=f'{col} {year}', color=cmap(norm(year)),linewidth=years_line_width)
                     else:
                         print(f"No {col} data available for year {year}")
-
             if plot_mean_std:
                 ax.plot(average.index, average, color=color, label=f'mean {col} ±{k} std', alpha=1, linewidth=3)  # Mean line with full opacity
                 ax.fill_between(average.index, average + k * std, average - k * std, color=color, alpha=std_alpha)  
             if plot_mean_std != 'only':
-                df_nonan[col]=normalize_df(df_nonan[col],normalize)s
-                print(normalize)
+                df_nonan[col]=normalize_df(df_nonan[col],normalize)
                 ax.scatter(df_nonan['xaxis'], df_nonan[col], marker='.', label=col, color=color, alpha=scatter_alpha)
             ax.set_xlabel(f'{xaxis_name}')
             
@@ -1629,7 +1633,7 @@ def plot_scatter(dates:pd.DataFrame, x_col_name:str,y_col_name:str,x_label: str=
 
     x=dates[x_col_name]
     y=dates[y_col_name]
-    plt.figure()
+    plt.figure(figsize=(15,5))
     plt.scatter(x,y,color='red',s=50,edgecolor='black')
     plt.grid()
     plt.xlabel(x_label)
