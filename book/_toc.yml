@@ -4,7 +4,7 @@ root: intro.md
 parts:
   - caption: Contents
     chapters: 
-    - file: week_1_figures.md
+    - file: week_1_figures.ipynb
     - file: Part_1/Choosing_the_model.md
       sections:
       - file: Part_1/Loading_&_Exploring_Data.ipynb
