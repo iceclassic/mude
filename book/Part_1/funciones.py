@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.ticker as ticker
+import plotly
 import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 import warnings
 import pandas as pd
@@ -9,15 +11,11 @@ from scipy.signal import welch,find_peaks, butter, lfilter, filtfilt
 from scipy.fft import fft, fftfreq
 from datetime import time ,datetime,timedelta
 from scipy import stats
-import plotly.graph_objects as go
 import requests
 import seaborn as sns
 from io import StringIO
-from datetime import datetime
-import plotly.graph_objects as go
-#import plotly.graph_objs as go
 import geopandas as gpd
-import plotly
+
 
 def explore_contents(data: pd.DataFrame,
                      colormap: str = 'viridis',
