@@ -395,7 +395,9 @@ def plot_contents(
     ylim: list[float] | None = None,
     years_line_width: int = 4,
     plot_break_up_dates:bool=False,
-    normalize:str| None=None
+    normalize:str| None=None,
+    Title:str|None=None,
+    y_label:str|None=None,
 ):
     """
     Plots the data for the specified columns.
@@ -456,6 +458,10 @@ def plot_contents(
     normalize: str,optional
         if  `plot_together=True`, normalization can be applied in order to plot them together.
         The normalization can be `min_max` or `z-score`. Default is None.
+    Title: str,optional
+        if plot_together=True, the title of the plot
+    y_label:str,optional
+        if plot_together=True, the label of the y-axis
     Returns:
     ----------
     fig(s) : plotly.graph_objs.Figure
@@ -540,7 +546,8 @@ def plot_contents(
                 df_nonan[col]=normalize_df(df_nonan[col],normalize)
                 ax.scatter(df_nonan['xaxis'], df_nonan[col], marker='.', label=col, color=color, alpha=scatter_alpha)
             ax.set_xlabel(f'{xaxis_name}')
-            
+            ax.set_title(f'{Title}')
+            ax.set_ylabel(f'{y_label}')
         else:
             # Individual plots for each column
             if compare_years_to_baseline:
