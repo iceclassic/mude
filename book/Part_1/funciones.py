@@ -301,7 +301,9 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
         y_axis = f'y{i}'
         for column in columns:
             if column in df.columns:
-                fig.add_trace(go.Scatter(x=df.index, y=df[column], mode='lines', name=f"{group_name}: {column}", yaxis=y_axis))
+                col_data = df[column].copy()
+                col_data.dropna(inplace=True)
+                fig.add_trace(go.Scatter(x=col_data.index, y=col_data, mode='lines', name=f"{group_name}: {column}", yaxis=y_axis))
             else:
                 print(f"Warning: Column '{column}' not found in DataFrame")
         
