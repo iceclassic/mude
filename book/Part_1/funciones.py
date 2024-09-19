@@ -17,6 +17,211 @@ from io import StringIO
 import geopandas as gpd
 
 
+
+
+def finite_differences(series:pd.Series):
+    """
+    Computes forward, central, and backward differences using the step size as days between measurement.
+    
+    Parameters
+    ---------
+    series: pd.Series
+        Series with datetime index 
+    
+    Returns
+    ---------
+    df: pd.DataFrame
+        DataFrame with forward, backward and central differences for the Series
+    
+    """
+   
+    days_forward = (series.index.to_series().shift(-1) - series.index.to_series()).dt.days
+    days_backward = (series.index.to_series() - series.index.to_series().shift(1)).dt.days
+    
+    # Forward difference: (f(x+h) - f(x)) / h 
+    forward = (series.shift(-1) - series) / days_forward
+
+    # Backward difference: (f(x) - f(x-h)) / h,
+    backward = (series - series.shift(1)) / days_backward
+
+    # Central difference: (f(x+h) - f(x-h)) / (h_forward + h_backward)
+    central = (series.shift(-1) - series.shift(1)) / (days_forward + days_backward) #
+    
+    # fixing start/end points
+    forward.iloc[-1] = np.nan  
+    backward.iloc[0] = np.nan  
+
+    return pd.DataFrame({'forward': forward, 'backward': backward, 'central': central})
+
+def plot_gradients(ax:plt.axes,
+                    x:pd.Series, 
+                    y:pd.Series,
+                    slopes:pd.Series,
+                    length: int= 2,
+                    color: str='blue',
+                    label:str=None,
+                    label_flag: bool=True,
+                    offset: int=0 ):
+    """
+    Plot gradient slopes and annotate them.
+    
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to plot on.
+    x : pd.Series
+        The x-values of the data points.
+    y : pd.Series
+        The y-values of the data points.
+    slopes : pd.Series
+        The slopes of the data points. Each column column corresponds to a different gradient type.
+    length : int, optional
+        The length of the gradient line. Default is 2.
+    color : str, optional   
+        The color of the gradient line. Default is 'blue'.
+    label : str, optional
+        The label of the gradient line. Default is None.
+    label_flag : bool, optional
+        Whether to show the label. Default is True.
+    offset : int, optional
+        The offset of the annotation. Default is 0. Use to avoid overlapping annotations.
+
+    Returns
+    -------
+    annotations : list
+        A list of annotations of the value of the gradient at each point, using all the graudient types.
+    """
+    #
+    # (annotations)code shamelessly stolen from chatgpt 
+    annotations = []
+    for i in range(len(x)):
+        if np.isnan(slopes.iloc[i]):
+            continue  
+        dx = length  
+        dy = slopes.iloc[i] * dx  
+        
+        ax.plot(
+            [x[i], x[i] + pd.Timedelta(days=dx)], 
+            [y.iloc[i], y.iloc[i] + dy], 
+            color=color, alpha=0.7, label=label if label_flag else ""
+        )
+        
+        annotations.append({
+            'x': x[i] + pd.Timedelta(days=dx / 2),
+            'y': y.iloc[i] + offset,
+            'text': f'{slopes.iloc[i]:.2f}',
+            'color': color
+        })
+        label_flag = False  #
+
+
+    for annotation in annotations:
+        ax.annotate(
+            annotation['text'], 
+            (annotation['x'], annotation['y']), 
+            color=annotation['color'], fontsize=10, ha='center'
+        )
+
+
+def plot_gradients_and_thickness(result:pd.DataFrame,
+                                 col:pd.Series, 
+                                 year:int, 
+                                 plot_gradient_as_slope:bool=False,
+                                 Title: str=None ,
+                                 ylabel: str=None,
+                                 xlim: list=['01/01', '12/31'],
+                                 ylim: list=None,
+                                 annotation_offsets: dict= {'forward': -3, 'backward': -6, 'central': -9}):
+    """
+    Plots ice thickness gradients and ice thickness for a selected year.
+
+    Parameters
+    ----------
+    result: pd.DataFrame
+        DataFrame containing the gradients with columns ['forward', 'backward', 'central'].
+    col: pd.Series
+         Series containing the columns values indexed by datetime.
+    year: int
+        The year to filter and plot data for.
+    plot_gradient_as_slope: bool
+        If True, plots lines with gradients and annotations.
+    Title: str
+        title of the plot
+    ylabel: str
+        ylabel of the plot
+    ylim: list
+        y-axis limits for the plot. List should be in the format [(MM/DD),(MM/DD)].
+    annotation_offsets: dict
+        The offset of the annotation. Default value assume that the series has three column corresponding to 
+        forward, backward and central. Use to avoid overlapping annotations. The value corresponds to the y-axis value.
+        
+    Returns
+    -------
+    plt.figure
+    """
+    
+    result_year = result[result.index.year == year]
+    col_year = col[col.index.year == year]
+
+    xlimits=pd.to_datetime([str(year) + '/' + e for e in xlim])
+
+    
+    if not plot_gradient_as_slope:
+        fig, ax1 = plt.subplots(figsize=(20, 5))
+
+        ax1.plot(result_year['forward'], label='Forward', color='red')
+        ax1.plot(result_year['backward'], label='Backward', color='green')
+        ax1.plot(result_year['central'], label='Central', color='blue')
+
+        ax1.set_ylabel(ylabel)
+        ax1.set_xlabel('Date')
+        ax1.set_title(Title)
+        ax1.grid()
+
+
+        ax1.set_xlim(xlimits)
+        ax1.set_ylim(ylim)
+
+      
+        #ax1.set_xlim(result_year.index.min(), result_year.index.max())
+        ax1.legend(loc='upper left')
+
+      
+        ax2 = ax1.twinx()
+        ax2.scatter(col_year.index, col_year, color='black', alpha=0.4, label='data')
+        ax2.plot(col_year.index, col_year, color='black', alpha=0.4)
+        
+
+       
+        lines, labels = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        ax2.legend(lines + lines2, labels + labels2, loc='upper right')
+
+        plt.show()
+    else:
+        fig, ax = plt.subplots(figsize=(20, 5))
+
+        ax.plot(col_year.index, col_year, label='Thickness', color='black', linestyle='--', alpha=0.4)
+        ax.scatter(col_year.index, col_year, color='black', alpha=0.4)
+
+      
+        offsets = annotation_offsets
+        
+        for grad_type, color in zip(['forward', 'backward', 'central'], ['red', 'green', 'blue']):
+            slopes = result_year[grad_type]
+            plot_gradients(ax, result_year.index, col_year, slopes, color=color, label=grad_type.capitalize(), label_flag=True, offset=offsets[grad_type])
+
+        ax.legend()
+        ax.set_title(Title)
+        ax.set_xlabel('Date')
+        ax.set_ylabel(ylabel)
+        ax.set_xlim(xlimits)
+        ax.set_ylim(ylim)
+        ax.grid(True)
+        plt.show()
+
+
+
 def explore_contents(data: pd.DataFrame,
                      colormap: str = 'viridis',
                      opt: dict = {'Info':True,
@@ -380,6 +585,7 @@ def plot_columns_interactive(df, column_groups: dict, title: str | None = None,
     #fig.show()
     return fig
 
+
 def plot_contents(  
     df: pd.DataFrame,
     columns_to_plot: list[str] | None = None,
@@ -603,7 +809,8 @@ def plot_contents(
 
     plt.tight_layout()
     plt.show()
-   
+
+
 def compute_and_plot_psd(df, cols=None, nperseg=None, plot_period=False, apply_filter=False, max_allowed_freq=None,
                          filter_order=4, find_peaks_kwargs=None,detrend_method='linear'):
     """
@@ -1126,12 +1333,6 @@ def plot_interactive_map(Pfafstetter_levels=4,plot_only_nearby_basin=True)-> px.
     #fig.write_html('interactive_map.html')
 
 
-import pandas as pd
-import numpy as np
-from datetime import time ,datetime,timedelta
-from scipy import stats
-import matplotlib.pyplot as plt
-
 def decimal_time(t, direction='to_decimal'):
     """ Convert time object to decimal and decimal to time object depending on the direction given
 
@@ -1609,7 +1810,6 @@ class IceModel(object):
 #======================================================================================================
         return results
     
-
 def plot_scatter(dates:pd.DataFrame, x_col_name:str,y_col_name:str,x_label: str=None,y_label:str=None,title:str=None):
     """_summary_
 
