@@ -18,7 +18,6 @@ import geopandas as gpd
 
 
 
-
 def finite_differences(series:pd.Series):
     """
     Computes forward, central, and backward differences using the step size as days between measurement.
@@ -122,8 +121,7 @@ def plot_gradients(ax:plt.axes,
             color=annotation['color'], fontsize=10, ha='center'
         )
 
-
-def plot_gradients_and_thickness(result:pd.DataFrame,
+def plot_gradients_and_timeseries(result:pd.DataFrame,
                                  col:pd.Series, 
                                  year:int, 
                                  plot_gradient_as_slope:bool=False,
@@ -131,7 +129,8 @@ def plot_gradients_and_thickness(result:pd.DataFrame,
                                  ylabel: str=None,
                                  xlim: list=['01/01', '12/31'],
                                  ylim: list=None,
-                                 annotation_offsets: dict= {'forward': -3, 'backward': -6, 'central': -9}):
+                                 annotation_offsets: dict= {'forward': -3, 'backward': -6, 'central': -9},
+                                 vline: dict=None):
     """
     Plots ice thickness gradients and ice thickness for a selected year.
 
@@ -154,6 +153,8 @@ def plot_gradients_and_thickness(result:pd.DataFrame,
     annotation_offsets: dict
         The offset of the annotation. Default value assume that the series has three column corresponding to 
         forward, backward and central. Use to avoid overlapping annotations. The value corresponds to the y-axis value.
+    vline: dict
+        The vertical lines to plot. The key is the label and the value(str) is the date in the format MM/DD.
         
     Returns
     -------
@@ -181,6 +182,10 @@ def plot_gradients_and_thickness(result:pd.DataFrame,
 
         ax1.set_xlim(xlimits)
         ax1.set_ylim(ylim)
+
+        if vline is not None:
+            for key, value in vline.items():
+                ax1.axvline(pd.to_datetime(str(year) + '/' + value), color='magenta', linestyle='--', label=key,linewidth=3)	
 
       
         #ax1.set_xlim(result_year.index.min(), result_year.index.max())
@@ -211,14 +216,20 @@ def plot_gradients_and_thickness(result:pd.DataFrame,
             slopes = result_year[grad_type]
             plot_gradients(ax, result_year.index, col_year, slopes, color=color, label=grad_type.capitalize(), label_flag=True, offset=offsets[grad_type])
 
-        ax.legend()
         ax.set_title(Title)
         ax.set_xlabel('Date')
         ax.set_ylabel(ylabel)
         ax.set_xlim(xlimits)
         ax.set_ylim(ylim)
         ax.grid(True)
+        if vline is not None:
+            for key, value in vline.items():
+                ax.axvline(pd.to_datetime(str(year) + '/' + value), color='magenta', linestyle='--', label=key,linewidth=3)
+        
+        ax.legend()
         plt.show()
+
+
 
 
 
