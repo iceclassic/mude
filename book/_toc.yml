@@ -6,8 +6,8 @@ parts:
     chapters: 
     - file: Q1-Content/Q1_misc_content_and_figures.md
       sections:
-      - file: Q1-Content/week_1_figures.ipynb
-      - file: Q1-Content//w3_mude.ipynb
+      - file: Q1-Content/w1_intro.ipynb
+      - file: Q1-Content/w3_gradient.ipynb
     - file: Part_1/Choosing_the_model.md
       sections:
       - file: Part_1/Loading_&_Exploring_Data.ipynb
