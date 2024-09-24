@@ -1,0 +1,32 @@
+packages:
+  - name: teachbooks
+    depends_on: 
+      - jupyter-book
+  - name: jupyter-book
+  - name: seaborn
+  - name: sympy
+  - name: scipy
+  - name: geopandas
+  - name: plotly
+  - name: ipympl
+  - name: requests
+  - name: numpy
+  - name: matplotlib
+  - name: pandas
+  - name: pylance
+  - name: ipympl
+  - name: iceclassic
+  - name: docutils
+    version: "0.17.1"
+
+gitlab_packages:
+  - name: jupyterbook_patches
+    version: "0.1.4"
+    url: "https://gitlab.tudelft.nl/api/v4/projects/17983/packages/pypi/simple"
+  - name: sphinx-thebe
+    version: "0.9.9"
+    url: "https://gitlab.tudelft.nl/api/v4/projects/11239/packages/pypi/simple"
+
+git_repositories:
+  - name: download_link_replacer
+    url: "git+https://gitlab.tudelft.nl/mude/sphinx-download-link-replacer"
